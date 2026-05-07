@@ -1,0 +1,136 @@
+<div class="search-page">
+
+  <div class="page-header">
+    <h1 class="page-title">Find Doctors</h1>
+    <p class="page-subtitle">Browse nearby doctors and book an appointment.</p>
+  </div>
+
+  <!-- Location panel -->
+  <div class="location-panel">
+    <div class="location-tabs">
+      <button class="loc-tab" [class.active]="locationMode === 'gps'" (click)="locationMode = 'gps'; useGPS()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+        Use my location
+      </button>
+      <button class="loc-tab" [class.active]="locationMode === 'manual'" (click)="locationMode = 'manual'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Enter address
+      </button>
+    </div>
+
+    <div *ngIf="locationMode === 'gps' && gpsLoading" class="status-row">
+      <span class="spinner-sm"></span> Getting your location…
+    </div>
+    <div *ngIf="locationMode === 'gps' && !gpsLoading && locationReady && !gpsError" class="status-ok">
+      ✅ Location found
+    </div>
+
+    <div class="address-row" *ngIf="locationMode === 'manual'">
+      <input
+        class="address-input"
+        type="text"
+        [(ngModel)]="manualAddress"
+        placeholder="e.g. Kifisias 12, Athens"
+        (keyup.enter)="searchByAddress()"
+      />
+      <button class="btn-addr" (click)="searchByAddress()">Search</button>
+    </div>
+
+    <div class="loc-error" *ngIf="gpsError">⚠ {{ gpsError }}</div>
+  </div>
+
+  <!-- Map + list -->
+  <div class="map-list-layout">
+
+    <div class="map-wrap">
+      <div id="search-map"></div>
+      <div class="map-legend">
+        <span class="legend-item"><span class="dot blue"></span> You</span>
+        <span class="legend-item"><span class="dot red"></span> Doctor (click to book)</span>
+      </div>
+    </div>
+
+    <div class="list-panel">
+      <div class="filter-bar">
+        <button
+          *ngFor="let s of specialties"
+          class="filter-btn"
+          [class.active]="specialtyFilter === s || (s === 'All' && specialtyFilter === '')"
+          (click)="specialtyFilter = s === 'All' ? '' : s; loadDoctors()"
+        >{{ s }}</button>
+      </div>
+
+      <div *ngIf="loading" class="empty-state">Loading doctors…</div>
+      <div *ngIf="!loading && doctors.length === 0" class="empty-state">No doctors found.</div>
+
+      <div
+        class="doctor-card"
+        *ngFor="let d of doctors"
+        [class.hovered]="hoveredDoctorId === d.id"
+        (mouseenter)="hoveredDoctorId = d.id"
+        (mouseleave)="hoveredDoctorId = null"
+      >
+        <div class="doc-avatar">{{ d.firstName[0] }}{{ d.lastName[0] }}</div>
+        <div class="doc-info">
+          <span class="doc-name">Dr. {{ d.firstName }} {{ d.lastName }}</span>
+          <span class="doc-spec">{{ d.specialty }}</span>
+          <span class="doc-addr">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ d.address }} · {{ d.distanceKm }} km
+          </span>
+          <div class="doc-rating">
+            <span class="stars" *ngFor="let s of stars(d.rating)">{{ s }}</span>
+            <span class="rating-num">{{ d.rating }}</span>
+            <span class="review-cnt">({{ d.reviewCount }})</span>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <span class="slots-badge" [class.low]="d.availableSlots <= 2">{{ d.availableSlots }} slots</span>
+          <button class="btn-book" (click)="openBooking(d)" [disabled]="d.availableSlots === 0">Book</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Booking modal -->
+<div class="modal-backdrop" *ngIf="selectedDoctor" (click)="closeBooking()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Dr. {{ selectedDoctor.firstName }} {{ selectedDoctor.lastName }}</h2>
+        <span class="modal-spec">{{ selectedDoctor.specialty }}</span>
+      </div>
+      <button class="modal-close" (click)="closeBooking()">✕</button>
+    </div>
+
+    <div *ngIf="bookingSuccess" class="success-banner">
+      ✅ Appointment requested! The doctor will confirm shortly.
+      <button class="btn-secondary" (click)="closeBooking()">Close</button>
+    </div>
+
+    <ng-container *ngIf="!bookingSuccess">
+      <p class="modal-sub">Select a time slot:</p>
+      <div class="slots-grid">
+        <button
+          *ngFor="let slot of availableSlots(slots)"
+          class="slot-btn"
+          [class.selected]="selectedSlotId === slot.id"
+          (click)="selectedSlotId = slot.id"
+        >
+          <span class="slot-date">{{ formatSlotDate(slot.date) }}</span>
+          <span class="slot-time">{{ slot.time }}</span>
+        </button>
+      </div>
+      <div *ngIf="availableSlots(slots).length === 0" class="empty-state">No available slots.</div>
+      <textarea class="notes-input" [(ngModel)]="bookingNotes" placeholder="Notes for the doctor (optional)…" rows="3"></textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeBooking()">Cancel</button>
+        <button class="btn-primary" (click)="book()" [disabled]="!selectedSlotId || bookingLoading">
+          {{ bookingLoading ? 'Booking…' : 'Confirm Booking' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

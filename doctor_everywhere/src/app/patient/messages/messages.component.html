@@ -1,0 +1,55 @@
+<div class="messages-page">
+  <div class="page-header">
+    <h1 class="page-title">Messages</h1>
+  </div>
+
+  <!-- Compose -->
+  <div class="compose-card">
+    <h2 class="compose-title">Send a Message</h2>
+    <div class="compose-row">
+      <select class="form-select" [(ngModel)]="selectedAppointmentId">
+        <option value="" disabled>Select appointment…</option>
+        <option *ngFor="let a of appointments" [value]="a.id">
+          {{ a.doctorName }} · {{ a.date }} {{ a.time }}
+        </option>
+      </select>
+      <input
+        class="form-input"
+        type="text"
+        [(ngModel)]="newMessage"
+        placeholder="Type your message…"
+        (keyup.enter)="send()"
+      />
+      <button class="btn-send" (click)="send()" [disabled]="!newMessage.trim() || !selectedAppointmentId || sending">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        {{ sending ? 'Sending…' : 'Send' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages list -->
+  <div *ngIf="loading" class="empty-state">Loading messages…</div>
+
+  <div *ngIf="!loading && messages.length === 0" class="empty-state">
+    No messages yet. Book an appointment and start a conversation.
+  </div>
+
+  <div class="msg-list" *ngIf="!loading && messages.length > 0">
+    <div
+      class="msg-card"
+      *ngFor="let m of messages"
+      [class.from-patient]="m.fromPatient"
+      [class.unread]="!m.read && !m.fromPatient"
+    >
+      <div class="msg-avatar">{{ m.fromPatient ? 'Me' : m.doctorName[4] }}</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-sender">{{ m.fromPatient ? 'You' : m.doctorName }}</span>
+          <span class="msg-time">{{ timeAgo(m.sentAt) }}</span>
+          <span class="unread-dot" *ngIf="!m.read && !m.fromPatient"></span>
+        </div>
+        <p class="msg-content">{{ m.content }}</p>
+      </div>
+    </div>
+  </div>
+</div>

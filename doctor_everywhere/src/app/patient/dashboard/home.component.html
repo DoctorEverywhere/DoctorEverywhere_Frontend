@@ -1,0 +1,100 @@
+<div class="home">
+  <!--*ngIf="user$ | async as user" same as dashboard.html-->
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <!-- {{ user.firstName }} -->
+      <h1 class="page-title"> Jane 👋</h1>
+      <p class="page-subtitle">Here's a summary of your health activity.</p>
+    </div>
+    <a routerLink="/patient/search" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Find a Doctor
+    </a>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      </div>
+      <div>
+        <div class="stat-value">{{ upcomingAppointments.length }}</div>
+        <div class="stat-label">Upcoming</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div>
+        <div class="stat-value">{{ upcomingAppointments.length }}</div>
+        <div class="stat-label">Confirmed</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div>
+        <div class="stat-value">{{ unreadMessages.length }}</div>
+        <div class="stat-label">Unread Messages</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- Upcoming appointments -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Upcoming Appointments</h2>
+        <a routerLink="/patient/appointments" class="card-link">View all</a>
+      </div>
+
+      <div *ngIf="loading" class="empty-state">Loading…</div>
+
+      <div *ngIf="!loading && upcomingAppointments.length === 0" class="empty-state">
+        No upcoming appointments.
+        <a routerLink="/patient/search">Book one now →</a>
+      </div>
+
+      <div class="appt-list" *ngIf="!loading && upcomingAppointments.length > 0">
+        <div class="appt-item" *ngFor="let a of upcomingAppointments">
+          <div class="appt-date">
+            <span class="appt-day">{{ formatDate(a.date).split(' ')[1] }}</span>
+            <span class="appt-month">{{ formatDate(a.date).split(' ')[2] }}</span>
+          </div>
+          <div class="appt-info">
+            <span class="appt-doctor">{{ a.doctorName }}</span>
+            <span class="appt-spec">{{ a.doctorSpecialty }} · {{ a.time }}</span>
+          </div>
+          <span class="status-badge" [ngClass]="statusClass(a.status)">{{ a.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unread messages -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">New Messages</h2>
+        <a routerLink="/patient/messages" class="card-link">View all</a>
+      </div>
+
+      <div *ngIf="unreadMessages.length === 0" class="empty-state">No new messages.</div>
+
+      <div class="msg-list" *ngIf="unreadMessages.length > 0">
+        <div class="msg-item" *ngFor="let m of unreadMessages">
+          <div class="msg-avatar">{{ m.doctorName[4] }}</div>
+          <div class="msg-body">
+            <span class="msg-doctor">{{ m.doctorName }}</span>
+            <span class="msg-preview">{{ m.content }}</span>
+          </div>
+          <span class="msg-time">{{ timeAgo(m.sentAt) }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

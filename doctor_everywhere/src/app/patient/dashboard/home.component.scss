@@ -1,0 +1,190 @@
+.home { display: flex; flex-direction: column; gap: 1.5rem; }
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  background: #185FA5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover { background: #0C447C; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+
+  &.blue  { background: #eff6ff; svg { stroke: #185FA5; } }
+  &.green { background: #f0fdf4; svg { stroke: #16a34a; } }
+  &.red   { background: #fef2f2; svg { stroke: #ef4444; } }
+}
+
+.stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; line-height: 1; }
+.stat-label { font-size: 0.8125rem; color: #64748b; margin-top: 2px; }
+
+// ── Two col ───────────────────────────────────────────────────────────────────
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.card-title { font-size: 0.9375rem; font-weight: 600; color: #0f172a; margin: 0; }
+.card-link  { font-size: 0.8125rem; color: #185FA5; text-decoration: none; &:hover { text-decoration: underline; } }
+
+.empty-state {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  a { color: #185FA5; text-decoration: none; }
+}
+
+// ── Appointment list ──────────────────────────────────────────────────────────
+
+.appt-list { display: flex; flex-direction: column; gap: 10px; }
+
+.appt-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  &:last-child { border-bottom: none; }
+}
+
+.appt-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  background: #eff6ff;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.appt-day   { font-size: 1rem; font-weight: 700; color: #185FA5; line-height: 1; }
+.appt-month { font-size: 0.625rem; color: #185FA5; text-transform: uppercase; }
+
+.appt-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.appt-doctor { font-size: 0.875rem; font-weight: 500; color: #0f172a; }
+.appt-spec   { font-size: 0.8125rem; color: #64748b; }
+
+// ── Status badges ─────────────────────────────────────────────────────────────
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.status-confirmed { background: #f0fdf4; color: #16a34a; }
+.status-pending   { background: #fffbeb; color: #d97706; }
+.status-rejected  { background: #fef2f2; color: #ef4444; }
+.status-modified  { background: #eff6ff; color: #185FA5; }
+.status-cancelled { background: #f8fafc; color: #94a3b8; }
+
+// ── Message list ──────────────────────────────────────────────────────────────
+
+.msg-list { display: flex; flex-direction: column; gap: 10px; }
+
+.msg-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  &:last-child { border-bottom: none; }
+}
+
+.msg-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #185FA5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.msg-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.msg-doctor  { font-size: 0.875rem; font-weight: 500; color: #0f172a; }
+.msg-preview { font-size: 0.8125rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-time    { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
