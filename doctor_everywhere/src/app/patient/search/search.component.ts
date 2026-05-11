@@ -43,8 +43,13 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.initMap();
-    this.useGPS();
+    // Wait for DOM to fully render before initializing map
+    setTimeout(() => {
+      this.initMap();
+      this.locationReady = true;
+      this.loadDoctors();
+      this.useGPS();
+    }, 0);
   }
 
   ngOnDestroy(): void {
@@ -52,11 +57,22 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap(): void {
-    this.map = L.map('search-map', { center: this.center, zoom: 13 });
+    const mapEl = document.getElementById('search-map');
+    if (!mapEl) return;
+
+    this.map = L.map('search-map', {
+      center: this.center,
+      zoom: 13,
+      zoomControl: true,
+    });
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(this.map);
+
+    // Force size recalculation after tiles load
+    setTimeout(() => this.map.invalidateSize(), 200);
   }
 
   private setUserMarker(lat: number, lng: number): void {
@@ -70,6 +86,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     }).addTo(this.map);
     this.userMarker.bindPopup('<b>Your location</b>').openPopup();
     this.map.setView([lat, lng], 13);
+    setTimeout(() => this.map.invalidateSize(), 100);
   }
 
   private renderDoctorMarkers(): void {
@@ -101,10 +118,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   useGPS(): void {
     if (!navigator.geolocation) {
-      this.gpsError = 'Geolocation not supported.';
       this.locationMode = 'manual';
-      this.locationReady = true;
-      this.loadDoctors();
       return;
     }
     this.gpsLoading = true;
@@ -114,15 +128,12 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
         this.center = [pos.coords.latitude, pos.coords.longitude];
         this.setUserMarker(this.center[0], this.center[1]);
         this.gpsLoading = false;
-        this.locationReady = true;
-        this.loadDoctors();
+        this.locationMode = 'gps';
+        this.renderDoctorMarkers();
       },
       () => {
         this.gpsLoading = false;
-        this.gpsError = 'Could not get location. Enter your address below.';
         this.locationMode = 'manual';
-        this.locationReady = true;
-        this.loadDoctors();
       },
       { timeout: 10000 }
     );
@@ -139,9 +150,8 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
           const lng = parseFloat(results[0].lon);
           this.center = [lat, lng];
           this.setUserMarker(lat, lng);
-          this.locationReady = true;
           this.gpsError = '';
-          this.loadDoctors();
+          this.renderDoctorMarkers();
         } else {
           this.gpsError = 'Address not found. Try a more specific address.';
         }
@@ -155,7 +165,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.svc.getNearbyDoctors(specialty).subscribe(d => {
       this.doctors = d;
       this.loading = false;
-      this.renderDoctorMarkers();
+      if (this.map) this.renderDoctorMarkers();
     });
   }
 
@@ -172,8 +182,15 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   book(): void {
     if (!this.selectedSlotId || !this.selectedDoctor) return;
     this.bookingLoading = true;
-    const req: AppointmentRequest = { doctorId: this.selectedDoctor.id, slotId: this.selectedSlotId, notes: this.bookingNotes };
-    this.svc.bookAppointment(req).subscribe(() => { this.bookingSuccess = true; this.bookingLoading = false; });
+    const req: AppointmentRequest = {
+      doctorId: this.selectedDoctor.id,
+      slotId: this.selectedSlotId,
+      notes: this.bookingNotes
+    };
+    this.svc.bookAppointment(req).subscribe(() => {
+      this.bookingSuccess = true;
+      this.bookingLoading = false;
+    });
   }
 
   stars(rating: number): string[] {
