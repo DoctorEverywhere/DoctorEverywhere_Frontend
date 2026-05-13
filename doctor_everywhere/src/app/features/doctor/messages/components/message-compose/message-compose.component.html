@@ -1,0 +1,30 @@
+<div class="card border">
+  <div class="card-body d-flex flex-column gap-3">
+    <h2 class="h6 fw-semibold mb-0">Send a Message</h2>
+    <div class="d-flex gap-2 flex-wrap">
+      <select class="form-select" style="min-width:220px;max-width:320px" [(ngModel)]="selectedAppointmentId">
+        <option value="" disabled>Select patient…</option>
+        @for (a of appointments; track a.id) {
+          <option [value]="a.id">{{ a.patientName }} · {{ a.date }} {{ a.time }}</option>
+        }
+      </select>
+      <input
+        class="form-control flex-grow-1"
+        type="text"
+        [(ngModel)]="content"
+        placeholder="Type your message…"
+        (keyup.enter)="send()"
+      />
+      <button
+        class="btn btn-primary d-flex align-items-center gap-2"
+        (click)="send()"
+        [disabled]="!content.trim() || !selectedAppointmentId || sending"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        {{ sending ? 'Sending…' : 'Send' }}
+      </button>
+    </div>
+  </div>
+</div>

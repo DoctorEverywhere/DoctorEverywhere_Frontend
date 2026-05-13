@@ -1,0 +1,76 @@
+<div class="d-flex flex-column gap-3">
+
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="h6 fw-semibold mb-1">Weekly Availability</h2>
+      <p class="text-muted small mb-0">
+        <i class="bi bi-arrow-repeat"></i>
+        This schedule repeats every week unless you change it.
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      @if (saved) {
+        <span class="text-success small d-flex align-items-center gap-1">
+          <i class="bi bi-check-circle-fill"></i> Saved!
+        </span>
+      }
+      <button class="btn btn-primary d-flex align-items-center gap-2" (click)="save()">
+        <i class="bi bi-floppy"></i> Save Schedule
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="d-flex gap-2 flex-wrap">
+    @for (day of days; track day) {
+      <span class="badge rounded-pill"
+            [class.bg-primary]="slotCount(day) > 0"
+            [class.bg-secondary]="slotCount(day) === 0">
+        {{ day.slice(0, 3) }}: {{ slotCount(day) }} slots
+      </span>
+    }
+  </div>
+
+  <!-- Grid -->
+  <div class="slots-wrapper">
+    <table class="slots-table table table-bordered table-sm text-center mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="time-col text-muted fw-normal small">Time</th>
+          @for (day of days; track day) {
+            <th class="small fw-semibold">{{ day.slice(0, 3) }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (time of timeSlots; track time) {
+          <tr>
+            <td class="time-col text-muted small align-middle">{{ time }}</td>
+            @for (day of days; track day) {
+              <td class="slot-cell p-1">
+                <button
+                  class="slot-btn w-100 rounded-1 border-0"
+                  [class.slot-on]="isAvailable(day, time)"
+                  [class.slot-off]="!isAvailable(day, time)"
+                  (click)="toggleSlot(day, time)"
+                  [title]="(isAvailable(day, time) ? 'Remove' : 'Add') + ' ' + day + ' ' + time"
+                ></button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex align-items-center gap-3 small text-muted">
+    <span class="d-flex align-items-center gap-1">
+      <span class="legend-dot slot-on rounded-1"></span> Available
+    </span>
+    <span class="d-flex align-items-center gap-1">
+      <span class="legend-dot slot-off rounded-1"></span> Not available
+    </span>
+    <span>Click any cell to toggle.</span>
+  </div>
+
+</div>

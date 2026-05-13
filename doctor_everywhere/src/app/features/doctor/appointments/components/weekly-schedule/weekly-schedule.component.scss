@@ -1,0 +1,43 @@
+.slots-wrapper {
+  overflow-x: auto;
+}
+
+.slots-table {
+  min-width: 520px;
+
+  .time-col {
+    width: 64px;
+    min-width: 64px;
+  }
+
+  .slot-cell {
+    padding: 3px !important;
+  }
+}
+
+.slot-btn {
+  height: 24px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+
+  &.slot-on {
+    background-color: #185FA5;
+
+    &:hover { background-color: #144f8a; }
+  }
+
+  &.slot-off {
+    background-color: #e9ecef;
+
+    &:hover { background-color: #d0d5db; }
+  }
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+
+  &.slot-on  { background-color: #185FA5; }
+  &.slot-off { background-color: #e9ecef; border: 1px solid #dee2e6; }
+}

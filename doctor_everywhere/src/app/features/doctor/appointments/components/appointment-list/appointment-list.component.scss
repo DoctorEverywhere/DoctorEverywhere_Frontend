@@ -1,0 +1,12 @@
+.appt-date-block {
+  width: 44px;
+  height: 48px;
+}
+
+.badge {
+  &.status-confirmed { background-color: #d1fae5 !important; color: #065f46 !important; }
+  &.status-pending   { background-color: #fef3c7 !important; color: #92400e !important; }
+  &.status-rejected  { background-color: #fee2e2 !important; color: #991b1b !important; }
+  &.status-modified  { background-color: #dbeafe !important; color: #1e40af !important; }
+  &.status-cancelled { background-color: #f1f5f9 !important; color: #64748b !important; }
+}

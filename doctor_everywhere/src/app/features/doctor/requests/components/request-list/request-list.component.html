@@ -1,0 +1,56 @@
+@if (loading) {
+  <div class="text-center text-muted py-4 small">Loading…</div>
+} @else if (requests.length === 0) {
+  <div class="text-center text-muted py-4 small">No requests.</div>
+} @else {
+  <div class="d-flex flex-column gap-3">
+    @for (r of requests; track r.id) {
+      <div class="card border">
+        <div class="card-body">
+
+          <div class="d-flex align-items-start gap-3">
+            <div class="patient-avatar rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center flex-shrink-0">
+              <span class="fw-semibold text-primary text-uppercase">{{ initials(r.patientName) }}</span>
+            </div>
+            <div class="flex-grow-1 min-w-0">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <span class="fw-semibold text-dark">{{ r.patientName }}</span>
+                @if (r.status === 'accepted') {
+                  <span class="badge rounded-pill bg-success-subtle text-success">Accepted</span>
+                }
+                @if (r.status === 'rejected') {
+                  <span class="badge rounded-pill bg-danger-subtle text-danger">Rejected</span>
+                }
+                @if (r.status === 'pending') {
+                  <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">Pending</span>
+                }
+              </div>
+              <div class="d-flex align-items-center gap-1 text-muted small mb-1">
+                <i class="bi bi-calendar-event"></i>
+                {{ formatDate(r.date) }} at {{ r.time }}
+              </div>
+              <div class="text-muted" style="font-size:0.75rem">Requested {{ timeAgo(r.createdAt) }}</div>
+              @if (r.notes) {
+                <div class="mt-2 p-2 bg-light rounded-2 small text-muted fst-italic">
+                  📝 {{ r.notes }}
+                </div>
+              }
+            </div>
+          </div>
+
+          @if (showActions) {
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-success d-flex align-items-center gap-2" (click)="accepted.emit(r.id)">
+                <i class="bi bi-check-circle"></i> Accept Request
+              </button>
+              <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="rejected.emit(r.id)">
+                <i class="bi bi-x-circle"></i> Reject
+              </button>
+            </div>
+          }
+
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -1,11 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { DoctorService } from '../services/doctor.service';
 import { DoctorRequest } from '../models/doctor.models';
+import { RequestListComponent } from './components/request-list/request-list.component';
 
 @Component({
   selector: 'app-doctor-requests',
   standalone: true,
-  imports: [],
+  imports: [RequestListComponent],
   templateUrl: './requests.component.html',
   styleUrls: ['./requests.component.scss']
 })
@@ -42,22 +43,5 @@ export class DoctorRequestsComponent implements OnInit {
       const r = this.requests.find(x => x.id === id);
       if (r) r.status = 'rejected';
     });
-  }
-
-  initials(name: string): string {
-    return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
-  }
-
-  formatDate(d: string): string {
-    return new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-  }
-
-  timeAgo(iso: string): string {
-    const diff = Date.now() - new Date(iso).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
   }
 }

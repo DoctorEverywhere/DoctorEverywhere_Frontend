@@ -8,11 +8,14 @@ import { Appointment } from '../../../shared/models/appointment.model';
 import { Message } from '../../../shared/models/message.model';
 import { DoctorRequest } from '../models/doctor.models';
 import { UserInfo } from '../../../shared/models/user-identity.model';
+import { StatCardsComponent } from './components/stat-cards/stat-cards.component';
+import { TodayScheduleComponent } from './components/today-schedule/today-schedule.component';
+import { PendingRequestsPreviewComponent } from './components/pending-requests-preview/pending-requests-preview.component';
 
 @Component({
   selector: 'app-doctor-dashboard',
   standalone: true,
-  imports: [AsyncPipe, RouterLink],
+  imports: [AsyncPipe, RouterLink, StatCardsComponent, TodayScheduleComponent, PendingRequestsPreviewComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -40,7 +43,7 @@ export class DoctorDashboardComponent implements OnInit {
     });
 
     this.svc.getMessages().subscribe(msgs => {
-      this.unreadMessages = msgs.filter(m => m.fromPatient && !m.read).slice(0, 3);
+      this.unreadMessages = msgs.filter(m => m.fromPatient && !m.read);
     });
   }
 
@@ -54,22 +57,5 @@ export class DoctorDashboardComponent implements OnInit {
     this.svc.rejectRequest(id).subscribe(() => {
       this.pendingRequests = this.pendingRequests.filter(r => r.id !== id);
     });
-  }
-
-  initials(name: string): string {
-    return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
-  }
-
-  formatDate(d: string): string {
-    return new Date(d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  }
-
-  timeAgo(iso: string): string {
-    const diff = Date.now() - new Date(iso).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
   }
 }
