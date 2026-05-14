@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Appointment } from '../../../shared/models/appointment.model';
 import { Message } from '../../../shared/models/message.model';
-import { DAYS, Day, DoctorRequest, WeeklySchedule, WeeklyAvailability, SaveSlotsRequest } from '../models/doctor.models';
+import { DAYS, DoctorProfile, DoctorRequest, WeeklySchedule, WeeklyAvailability, SaveSlotsRequest } from '../models/doctor.models';
 
 @Injectable({ providedIn: 'root' })
 export class DoctorService {
@@ -14,6 +14,11 @@ export class DoctorService {
   private readonly AVAILABILITY_KEY = 'doctor_weekly_availability';
 
   constructor(private http: HttpClient) {}
+
+  getDoctorProfile(id: number): Observable<DoctorProfile> {
+    if (this.USE_MOCK) return of(MOCK_DOCTOR_PROFILE);
+    return this.http.get<DoctorProfile>(`${this.base}/doctor/${id}`);
+  }
 
   getRequests(): Observable<DoctorRequest[]> {
     if (this.USE_MOCK) return of(MOCK_REQUESTS);
@@ -34,7 +39,6 @@ export class DoctorService {
           date: r.date,
           time: r.time,
           status: 'confirmed',
-          notes: r.notes,
           createdAt: new Date().toISOString(),
         });
       }
@@ -152,15 +156,33 @@ const DEFAULT_AVAILABILITY: WeeklyAvailability = {
   Saturday:  [],
 };
 
+// ── Mock profile ─────────────────────────────────────────────────────────────
+
+const MOCK_DOCTOR_PROFILE: DoctorProfile = {
+  id: 1,
+  firstName: 'Alexandros',
+  lastName: 'Papadopoulos',
+  specialty: 1,
+  office: {
+    id: 1,
+    name: 'Papadopoulos Cardiology Clinic',
+    address: 'Ermou 45',
+    city: 'Athens',
+    postalCode: '10563',
+    latitude: 37.9838,
+    longitude: 23.7275,
+  },
+};
+
 // ── Mock data ────────────────────────────────────────────────────────────────
 
 const MOCK_REQUESTS: DoctorRequest[] = [
-  { id: 'req-1', patientId: 'p1', patientName: 'Maria Papadopoulou', date: addDays(2), time: '09:00', notes: 'Annual checkup, no specific concerns.', status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'req-1', patientId: 'p1', patientName: 'Maria Papadopoulou', date: addDays(2), time: '09:00', status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString() },
   { id: 'req-2', patientId: 'p2', patientName: 'Giorgos Nikolaou',   date: addDays(2), time: '10:30', status: 'pending', createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: 'req-3', patientId: 'p3', patientName: 'Anna Kostopoulos',   date: addDays(3), time: '14:00', notes: 'Follow-up after ECG results.', status: 'pending', createdAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'req-4', patientId: 'p4', patientName: 'Dimitris Alexiou',   date: addDays(1), time: '09:30', notes: 'Chest pain evaluation.', status: 'accepted', createdAt: new Date(Date.now() - 172800000).toISOString() },
+  { id: 'req-3', patientId: 'p3', patientName: 'Anna Kostopoulos',   date: addDays(3), time: '14:00', status: 'pending', createdAt: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'req-4', patientId: 'p4', patientName: 'Dimitris Alexiou',   date: addDays(1), time: '09:30', status: 'accepted', createdAt: new Date(Date.now() - 172800000).toISOString() },
   { id: 'req-5', patientId: 'p5', patientName: 'Eleni Stavrou',      date: addDays(4), time: '11:00', status: 'rejected', createdAt: new Date(Date.now() - 259200000).toISOString() },
-  { id: 'req-6', patientId: 'p6', patientName: 'Nikos Konstantinou', date: addDays(5), time: '15:30', notes: 'Requesting earlier appointment if possible.', status: 'pending', createdAt: new Date(Date.now() - 43200000).toISOString() },
+  { id: 'req-6', patientId: 'p6', patientName: 'Nikos Konstantinou', date: addDays(5), time: '15:30', status: 'pending', createdAt: new Date(Date.now() - 43200000).toISOString() },
 ];
 
 export const MOCK_DOCTOR_APPOINTMENTS: Appointment[] = [

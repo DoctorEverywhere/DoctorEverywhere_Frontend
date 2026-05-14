@@ -17,5 +17,9 @@ export const DOCTOR_ROUTES: Routes = [
     path: 'messages',
     loadComponent: () => import('./messages/messages.component').then(m => m.DoctorMessagesComponent)
   },
+  {
+    path: 'profile',
+    loadComponent: () => import('./profile/profile.component').then(m => m.DoctorProfileComponent)
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 ];

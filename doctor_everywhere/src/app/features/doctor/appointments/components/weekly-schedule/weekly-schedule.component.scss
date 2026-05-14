@@ -1,3 +1,15 @@
+.btn-sidebar {
+  background-color: #eff6ff;
+  color: #185FA5;
+  border: 1.5px solid #185FA5;
+
+  &:hover, &:focus {
+    background-color: #185FA5;
+    color: #fff;
+    border-color: #185FA5;
+  }
+}
+
 .day-card {
   background: #fff;
   border: 1px solid #dee2e6;

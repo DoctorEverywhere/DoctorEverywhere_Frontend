@@ -24,13 +24,43 @@ export interface SaveSlotsRequest {
   slots: AvailabilitySlot[];
 }
 
+export interface DoctorOffice {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface DoctorProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  specialty: number;
+  office: DoctorOffice;
+}
+
+export const SPECIALTY_LABELS: Record<number, string> = {
+  0: 'General Practice',
+  1: 'Cardiology',
+  2: 'Dermatology',
+  3: 'Neurology',
+  4: 'Orthopedics',
+  5: 'Pediatrics',
+  6: 'Psychiatry',
+  7: 'Radiology',
+  8: 'Surgery',
+  9: 'Urology',
+};
+
 export interface DoctorRequest {
   id: string;
   patientId: string;
   patientName: string;
   date: string;
   time: string;
-  notes?: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
 }
