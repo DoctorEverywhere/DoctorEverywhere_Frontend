@@ -42,7 +42,7 @@ export interface DoctorProfile {
   office: DoctorOffice;
 }
 
-export const SPECIALTY_LABELS: Record<number, string> = {
+export const SPECIALTY_LABELS: Record<number, string | undefined> = {
   0: 'General Practice',
   1: 'Cardiology',
   2: 'Dermatology',
