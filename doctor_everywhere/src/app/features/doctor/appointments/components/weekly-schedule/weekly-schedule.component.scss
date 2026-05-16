@@ -1,0 +1,36 @@
+.btn-sidebar {
+  background-color: #eff6ff;
+  color: #185FA5;
+  border: 1.5px solid #185FA5;
+
+  &:hover, &:focus {
+    background-color: #185FA5;
+    color: #fff;
+    border-color: #185FA5;
+  }
+}
+
+.day-card {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.day-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.day-label {
+  font-size: 0.9rem;
+  min-width: 110px;
+}
+
+.range-select {
+  max-width: 110px;
+}
+
+.range-row {
+  flex-wrap: wrap;
+}

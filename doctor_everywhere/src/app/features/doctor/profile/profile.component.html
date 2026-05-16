@@ -1,0 +1,103 @@
+<div class="d-flex flex-column gap-4">
+  <div>
+    <h1 class="h4 fw-semibold text-dark mb-0">My Profile</h1>
+    <p class="text-muted small mb-0">Your professional information as it appears to patients.</p>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-5 text-muted">
+      <div class="spinner-border spinner-border-sm me-2"></div>
+      Loading profile...
+    </div>
+  }
+
+  @if (error) {
+    <div class="alert alert-danger">{{ error }}</div>
+  }
+
+  @if (profile && !loading) {
+    <div class="profile-card">
+      <!-- Avatar + Name + Specialty -->
+      <div class="d-flex align-items-center gap-4 mb-4">
+        <div class="avatar-circle">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</div>
+        <div>
+          <h2 class="h5 fw-bold mb-1">Dr. {{ profile.firstName }} {{ profile.lastName }}</h2>
+          <span class="badge bg-primary-subtle text-primary">
+            {{ specialtyLabels[profile.specialty] ?? 'Unknown Specialty' }}
+          </span>
+        </div>
+      </div>
+
+      <hr class="my-3" />
+
+      <!-- Office info -->
+      <h3
+        class="h6 fw-semibold text-muted text-uppercase mb-3"
+        style="letter-spacing: 0.06em; font-size: 0.72rem"
+      >
+        Office Details
+      </h3>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="info-item">
+            <i class="bi bi-building"></i>
+            <div>
+              <div class="label">Clinic Name</div>
+              <div class="value">{{ profile.office.name }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="info-item">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+              <div class="label">Address</div>
+              <div class="value">{{ profile.office.address }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-item">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+              <div class="label">City</div>
+              <div class="value">{{ profile.office.city }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="info-item">
+            <i class="bi bi-mailbox"></i>
+            <div>
+              <div class="label">Postal Code</div>
+              <div class="value">{{ profile.office.postalCode }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="info-item">
+            <i class="bi bi-pin-map"></i>
+            <div>
+              <div class="label">Latitude</div>
+              <div class="value">{{ profile.office.latitude }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="info-item">
+            <i class="bi bi-pin-map"></i>
+            <div>
+              <div class="label">Longitude</div>
+              <div class="value">{{ profile.office.longitude }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

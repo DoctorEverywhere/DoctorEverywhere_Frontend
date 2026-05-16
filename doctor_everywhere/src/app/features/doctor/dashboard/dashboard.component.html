@@ -1,0 +1,35 @@
+@let user = user$ | async;
+
+<div class="d-flex flex-column gap-4">
+
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h1 class="h4 fw-semibold text-dark mb-1">Welcome, Dr. {{ user?.lastName }}</h1>
+      <p class="text-muted mb-0 small">Here's your schedule for today.</p>
+    </div>
+    <a routerLink="/doctor/profile"
+       class="btn btn-sidebar d-flex align-items-center gap-2 px-4 py-2 shadow-sm fw-semibold rounded-pill">
+      <i class="bi bi-person-circle fs-5"></i> My Profile
+    </a>
+  </div>
+
+  <app-stat-cards
+    [todayCount]="todayAppointments.length"
+    [pendingCount]="pendingRequests.length"
+    [unreadCount]="unreadMessages.length"
+  />
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <app-today-schedule [appointments]="todayAppointments" [loading]="loading" />
+    </div>
+    <div class="col-lg-6">
+      <app-pending-requests-preview
+        [requests]="pendingRequests"
+        (accepted)="accept($event)"
+        (rejected)="reject($event)"
+      />
+    </div>
+  </div>
+
+</div>
