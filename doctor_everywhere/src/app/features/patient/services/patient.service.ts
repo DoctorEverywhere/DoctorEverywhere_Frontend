@@ -55,6 +55,14 @@ export class PatientService {
     );
   }
 
+  // ── Reviews — REAL API ✅ ─────────────────────────────────────────────────
+
+  getDoctorReviews(doctorId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/review/${doctorId}`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
   // ── Slots — REAL API ✅ ───────────────────────────────────────────────────
 
   getDoctorSlots(doctorId: string, date?: Date): Observable<TimeSlot[]> {

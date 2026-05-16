@@ -125,9 +125,7 @@
                 </span>
               </div>
               <div class="d-flex flex-column align-items-end gap-2 flex-shrink-0">
-                <button class="btn btn-sm btn-primary" (click)="openBooking(d)">
-                  Book
-                </button>
+                <button class="btn btn-sm btn-primary" (click)="openBooking(d)">Book</button>
               </div>
             </div>
           </div>
@@ -144,6 +142,7 @@
   <div class="booking-modal-wrap">
     <div class="booking-modal" (click)="$event.stopPropagation()">
 
+      <!-- Modal header -->
       <div class="d-flex align-items-start justify-content-between mb-3">
         <div>
           <h5 class="fw-semibold mb-0">Dr. {{ selectedDoctor.firstName }} {{ selectedDoctor.lastName }}</h5>
@@ -159,7 +158,7 @@
         </div>
       } @else {
 
-        <!-- Date picker for slots -->
+        <!-- Date picker -->
         <div class="mb-3">
           <label class="form-label small text-muted">Select date:</label>
           <input
@@ -172,7 +171,7 @@
           />
         </div>
 
-        <p class="small text-muted mb-3">Available time slots:</p>
+        <p class="small text-muted mb-2">Available time slots:</p>
 
         @if (slotsLoading) {
           <div class="text-center text-muted small py-2">
@@ -206,15 +205,54 @@
           class="form-control mb-3"
           [(ngModel)]="bookingNotes"
           placeholder="Notes for the doctor (optional)…"
-          rows="3"
+          rows="2"
         ></textarea>
 
-        <div class="d-flex justify-content-end gap-2">
+        <div class="d-flex justify-content-end gap-2 mb-3">
           <button type="button" class="btn btn-outline-secondary" (click)="closeBooking()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="book()" [disabled]="!selectedSlotId || bookingLoading">
             {{ bookingLoading ? 'Booking…' : 'Confirm Booking' }}
           </button>
         </div>
+
+        <!-- Reviews section -->
+        <div class="reviews-section">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fw-semibold small">Patient Reviews</span>
+            @if (reviews.length > 0) {
+              <span class="text-warning small">
+                @for (s of starsFromRating(averageRating); track $index) {
+                  {{ s }}
+                }
+              </span>
+              <span class="small text-muted">{{ averageRating }} ({{ reviews.length }})</span>
+            }
+          </div>
+
+          @if (reviewsLoading) {
+            <div class="text-muted small py-2">Loading reviews…</div>
+          } @else if (reviews.length === 0) {
+            <div class="text-muted small py-2">No reviews yet.</div>
+          } @else {
+            <div class="reviews-list">
+              @for (r of reviews; track r.createdAt) {
+                <div class="review-item">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="small fw-semibold">{{ r.patientFirstName }} {{ r.patientLastName }}</span>
+                    <span class="text-warning" style="font-size:0.8rem">
+                      @for (s of starsFromRating(r.rating); track $index) {
+                        {{ s }}
+                      }
+                    </span>
+                  </div>
+                  <p class="small text-muted mb-1">{{ r.comments }}</p>
+                  <span class="text-muted" style="font-size:0.7rem">{{ r.createdAt | date:'dd MMM yyyy' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
       }
 
     </div>

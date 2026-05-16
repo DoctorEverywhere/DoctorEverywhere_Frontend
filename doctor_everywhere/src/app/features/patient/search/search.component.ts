@@ -55,6 +55,11 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   bookingLoading = false;
   slotsLoading = false;
 
+  // Reviews
+  reviews: any[] = [];
+  reviewsLoading = false;
+  averageRating = 0;
+
   // Date picker
   selectedDate = '';
   minDate = new Date().toISOString().split('T')[0];
@@ -190,10 +195,29 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedDoctor = doctor;
     this.bookingSuccess = false;
     this.selectedSlotId = '';
-    this.bookingNotes = '';
-    this.slots = [];
-    this.selectedDate = this.minDate;
+    this.bookingNotes   = '';
+    this.slots          = [];
+    this.reviews        = [];
+    this.averageRating  = 0;
+    this.selectedDate   = this.minDate;
     this.loadSlotsForDate();
+    this.loadReviews();
+  }
+
+  loadReviews(): void {
+    if (!this.selectedDoctor) return;
+    this.reviewsLoading = true;
+    this.svc.getDoctorReviews(this.selectedDoctor.id).subscribe(r => {
+      this.reviews = r;
+      this.averageRating = r.length > 0
+        ? Math.round((r.reduce((sum: number, x: any) => sum + x.rating, 0) / r.length) * 10) / 10
+        : 0;
+      this.reviewsLoading = false;
+    });
+  }
+
+  starsFromRating(rating: number): string[] {
+    return Array.from({ length: 5 }, (_, i) => i < Math.round(rating) ? '★' : '☆');
   }
 
   loadSlotsForDate(): void {
