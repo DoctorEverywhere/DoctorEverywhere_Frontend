@@ -5,10 +5,11 @@
     <p class="text-muted small mb-0">Browse nearby doctors and book an appointment.</p>
   </div>
 
-  <!-- Location panel -->
+  <!-- Location + specialty panel -->
   <div class="card border">
     <div class="card-body d-flex flex-column gap-3">
 
+      <!-- Location buttons -->
       <div class="d-flex gap-2">
         <button class="btn d-flex align-items-center gap-2"
                 [class.btn-primary]="locationMode === 'gps'"
@@ -54,6 +55,26 @@
         <div class="alert alert-warning py-2 mb-0 small">⚠ {{ gpsError }}</div>
       }
 
+      <!-- Specialty filter row -->
+      <div class="d-flex align-items-center gap-2">
+        <label class="text-muted small mb-0 flex-shrink-0">Specialty:</label>
+        <select
+          class="form-select form-select-sm"
+          style="max-width:220px"
+          [(ngModel)]="specialtyFilter"
+          (change)="loadDoctors()"
+        >
+          <option value="">All specialties</option>
+          @for (s of specialtyOptions; track s.value) {
+            <option [value]="s.value">{{ s.label }}</option>
+          }
+        </select>
+        <button class="btn btn-primary btn-sm px-3" (click)="loadDoctors()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Search
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -74,19 +95,12 @@
 
     <div class="list-panel">
 
-      <div class="d-flex gap-2 flex-wrap mb-2">
-        @for (s of specialties; track s) {
-          <button
-            class="btn btn-sm rounded-pill"
-            [class.btn-primary]="specialtyFilter === s || (s === 'All' && specialtyFilter === '')"
-            [class.btn-outline-secondary]="!(specialtyFilter === s || (s === 'All' && specialtyFilter === ''))"
-            (click)="specialtyFilter = s === 'All' ? '' : s; loadDoctors()"
-          >{{ s }}</button>
-        }
-      </div>
-
       @if (loading) {
         <div class="text-center text-muted py-3 small">Loading doctors…</div>
+      } @else if (!searched) {
+        <div class="text-center text-muted py-3 small">
+          Select a specialty and click <strong>Search</strong> to find doctors.
+        </div>
       } @else if (doctors.length === 0) {
         <div class="text-center text-muted py-3 small">No doctors found.</div>
       } @else {
@@ -107,27 +121,11 @@
                 <span class="small text-primary fw-medium">{{ d.specialty }}</span>
                 <span class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  {{ d.address }} · {{ d.distanceKm }} km
+                  {{ d.address }}
                 </span>
-                <div class="d-flex align-items-center gap-1">
-                  @for (s of stars(d.rating); track $index) {
-                    <span class="text-warning" style="font-size:0.8125rem">{{ s }}</span>
-                  }
-                  <span class="small fw-semibold text-dark ms-1">{{ d.rating }}</span>
-                  <span class="text-muted" style="font-size:0.6875rem">({{ d.reviewCount }})</span>
-                </div>
               </div>
               <div class="d-flex flex-column align-items-end gap-2 flex-shrink-0">
-                <span class="badge rounded-pill"
-                      [class.bg-success-subtle]="d.availableSlots > 2"
-                      [class.text-success]="d.availableSlots > 2"
-                      [class.bg-warning-subtle]="d.availableSlots <= 2"
-                      [class.text-warning-emphasis]="d.availableSlots <= 2">
-                  {{ d.availableSlots }} slots
-                </span>
-                <button class="btn btn-sm btn-primary" (click)="openBooking(d)" [disabled]="d.availableSlots === 0">
-                  Book
-                </button>
+                <button class="btn btn-sm btn-primary" (click)="openBooking(d)">Book</button>
               </div>
             </div>
           </div>
@@ -144,6 +142,7 @@
   <div class="booking-modal-wrap">
     <div class="booking-modal" (click)="$event.stopPropagation()">
 
+      <!-- Modal header -->
       <div class="d-flex align-items-start justify-content-between mb-3">
         <div>
           <h5 class="fw-semibold mb-0">Dr. {{ selectedDoctor.firstName }} {{ selectedDoctor.lastName }}</h5>
@@ -158,42 +157,102 @@
           <button class="btn btn-outline-success btn-sm align-self-start" (click)="closeBooking()">Close</button>
         </div>
       } @else {
-        <p class="small text-muted mb-3">Select a time slot:</p>
 
-        <div class="row g-2 mb-3">
-          @for (slot of availableSlots(slots); track slot.id) {
-            <div class="col-6">
-              <button
-                type="button"
-                class="btn w-100 d-flex flex-column align-items-center py-2"
-                [class.btn-primary]="selectedSlotId === slot.id"
-                [class.btn-outline-secondary]="selectedSlotId !== slot.id"
-                (click)="selectedSlotId = slot.id"
-              >
-                <span style="font-size:0.75rem">{{ formatSlotDate(slot.date) }}</span>
-                <span class="fw-semibold">{{ slot.time }}</span>
-              </button>
-            </div>
-          }
+        <!-- Date picker -->
+        <div class="mb-3">
+          <label class="form-label small text-muted">Select date:</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            style="max-width:200px"
+            [(ngModel)]="selectedDate"
+            [min]="minDate"
+            (change)="loadSlotsForDate()"
+          />
         </div>
 
-        @if (availableSlots(slots).length === 0) {
-          <div class="text-center text-muted small py-2">No available slots.</div>
+        <p class="small text-muted mb-2">Available time slots:</p>
+
+        @if (slotsLoading) {
+          <div class="text-center text-muted small py-2">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+            Loading slots…
+          </div>
+        } @else {
+          <div class="row g-2 mb-3">
+            @for (slot of availableSlots(slots); track slot.id) {
+              <div class="col-6">
+                <button
+                  type="button"
+                  class="btn w-100 d-flex flex-column align-items-center py-2"
+                  [class.btn-primary]="selectedSlotId === slot.id"
+                  [class.btn-outline-secondary]="selectedSlotId !== slot.id"
+                  (click)="selectedSlotId = slot.id"
+                >
+                  <span style="font-size:0.75rem">{{ formatSlotDate(slot.date) }}</span>
+                  <span class="fw-semibold">{{ slot.time }}</span>
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (availableSlots(slots).length === 0) {
+            <div class="text-center text-muted small py-2">No available slots for this date.</div>
+          }
         }
 
         <textarea
           class="form-control mb-3"
           [(ngModel)]="bookingNotes"
           placeholder="Notes for the doctor (optional)…"
-          rows="3"
+          rows="2"
         ></textarea>
 
-        <div class="d-flex justify-content-end gap-2">
+        <div class="d-flex justify-content-end gap-2 mb-3">
           <button type="button" class="btn btn-outline-secondary" (click)="closeBooking()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="book()" [disabled]="!selectedSlotId || bookingLoading">
             {{ bookingLoading ? 'Booking…' : 'Confirm Booking' }}
           </button>
         </div>
+
+        <!-- Reviews section -->
+        <div class="reviews-section">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fw-semibold small">Patient Reviews</span>
+            @if (reviews.length > 0) {
+              <span class="text-warning small">
+                @for (s of starsFromRating(averageRating); track $index) {
+                  {{ s }}
+                }
+              </span>
+              <span class="small text-muted">{{ averageRating }} ({{ reviews.length }})</span>
+            }
+          </div>
+
+          @if (reviewsLoading) {
+            <div class="text-muted small py-2">Loading reviews…</div>
+          } @else if (reviews.length === 0) {
+            <div class="text-muted small py-2">No reviews yet.</div>
+          } @else {
+            <div class="reviews-list">
+              @for (r of reviews; track r.createdAt) {
+                <div class="review-item">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="small fw-semibold">{{ r.patientFirstName }} {{ r.patientLastName }}</span>
+                    <span class="text-warning" style="font-size:0.8rem">
+                      @for (s of starsFromRating(r.rating); track $index) {
+                        {{ s }}
+                      }
+                    </span>
+                  </div>
+                  <p class="small text-muted mb-1">{{ r.comments }}</p>
+                  <span class="text-muted" style="font-size:0.7rem">{{ r.createdAt | date:'dd MMM yyyy' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
       }
 
     </div>
