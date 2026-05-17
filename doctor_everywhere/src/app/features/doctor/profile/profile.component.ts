@@ -2,11 +2,12 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AuthService } from '../../../shared/services/auth.service';
 import { DoctorService } from '../services/doctor.service';
 import { DoctorProfile, SPECIALTY_LABELS } from '../models/doctor.models';
+import { DoctorDeleteComponent } from './components/doctor-delete.component/doctor-delete.component';
 
 @Component({
   selector: 'app-doctor-profile',
   standalone: true,
-  imports: [],
+  imports: [DoctorDeleteComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })

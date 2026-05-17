@@ -17,7 +17,7 @@
 
   @if (profile && !loading) {
     <div class="profile-card">
-      <!-- Avatar + Name + Specialty -->
+        <!-- Avatar + Name + Specialty -->
       <div class="d-flex align-items-center gap-4 mb-4">
         <div class="avatar-circle">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</div>
         <div>
@@ -99,5 +99,7 @@
         </div>
       </div>
     </div>
+
+    <app-doctor-delete></app-doctor-delete>
   }
 </div>

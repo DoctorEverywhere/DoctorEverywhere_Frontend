@@ -43,16 +43,16 @@ export interface DoctorProfile {
 }
 
 export const SPECIALTY_LABELS: Record<number, string | undefined> = {
-  0: 'General Practice',
-  1: 'Cardiology',
-  2: 'Dermatology',
-  3: 'Neurology',
-  4: 'Orthopedics',
-  5: 'Pediatrics',
-  6: 'Psychiatry',
-  7: 'Radiology',
-  8: 'Surgery',
-  9: 'Urology',
+  0: 'General Practicioner',
+  1: 'Cardiologist',
+  2: 'Dermatologist',
+  3: 'Neurologist',
+  4: 'Pediatrician',
+  5: 'Psychiatrist',
+  6: 'Orthopedic',
+  7: 'Gynecologist',
+  8: 'Dentist',
+  9: 'Ophthalmologist',
 };
 
 export interface DoctorRequest {

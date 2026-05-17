@@ -114,6 +114,11 @@ export class DoctorService {
     return this.http.post<void>(`${this.base}/availability/slots`, payload);
   }
 
+  deleteDoctorProfile(): Observable<string> {
+    // Because the C# backend returns a plain string in the 200 OK response, 
+    // we MUST tell Angular to expect text, not JSON.
+    return this.http.delete(`${this.base}/doctor/delete`, { responseType: 'text' });
+  }
   // ── Messages ──────────────────────────────────────────────────────────────
 
   getMessages(): Observable<Message[]> {
