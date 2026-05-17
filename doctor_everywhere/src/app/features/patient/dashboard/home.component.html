@@ -115,22 +115,22 @@
                   class="appt-date-block bg-primary-subtle rounded-2 d-flex flex-column align-items-center justify-content-center flex-shrink-0"
                 >
                   <span class="fw-bold text-primary lh-1">{{
-                    formatDate(a.date).split(' ')[1]
+                    formatDate(getDate(a.startingAt)).split(' ')[1]
                   }}</span>
                   <span
                     class="text-primary"
                     style="font-size: 0.625rem; text-transform: uppercase"
-                    >{{ formatDate(a.date).split(' ')[2] }}</span
+                    >{{ formatDate(getDate(a.startingAt)).split(' ')[2] }}</span
                   >
                 </div>
                 <div class="flex-grow-1 min-w-0">
                   <div class="small fw-semibold text-dark text-truncate">{{ a.doctorName }}</div>
                   <div class="text-muted" style="font-size: 0.8125rem">
-                    {{ a.doctorSpecialty }} · {{ a.time }}
+                    {{ getTime(a.startingAt) }}
                   </div>
                 </div>
-                <span class="badge rounded-pill" [ngClass]="statusClass(a.status)">{{
-                  a.status
+                <span class="badge rounded-pill" [ngClass]="statusClass(a.statusId)">{{
+                  statusLabel(a.statusId)
                 }}</span>
               </li>
             }

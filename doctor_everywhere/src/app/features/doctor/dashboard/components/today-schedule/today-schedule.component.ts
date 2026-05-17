@@ -16,4 +16,9 @@ export class TodayScheduleComponent {
   initials(name: string): string {
     return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
   }
+
+
+  getTime(startingAt: string): string {
+    return startingAt.split('T')[1].slice(0, 5);
+  }
 }
