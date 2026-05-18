@@ -3,6 +3,15 @@
   height: 48px;
 }
 
+.card.border {
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  &:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  }
+}
+
 .badge {
   &.status-confirmed { background-color: #d1fae5 !important; color: #065f46 !important; }
   &.status-pending   { background-color: #fef3c7 !important; color: #92400e !important; }

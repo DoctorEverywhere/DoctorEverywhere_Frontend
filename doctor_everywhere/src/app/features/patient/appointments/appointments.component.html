@@ -8,35 +8,38 @@
   </div>
 
   <!-- Tabs -->
-  <ul class="nav nav-tabs border-bottom">
+  <ul class="nav appt-tabs">
     <li class="nav-item">
       <button
-        class="nav-link d-flex align-items-center gap-2"
+        class="appt-tab d-flex align-items-center gap-2"
         [class.active]="activeTab === 'upcoming'"
         (click)="activeTab = 'upcoming'"
       >
+        <span class="tab-dot dot-upcoming"></span>
         Upcoming
-        <span class="badge rounded-pill bg-primary">{{ upcoming.length }}</span>
+        <span class="tab-badge badge-upcoming">{{ upcoming.length }}</span>
       </button>
     </li>
     <li class="nav-item">
       <button
-        class="nav-link d-flex align-items-center gap-2"
+        class="appt-tab d-flex align-items-center gap-2"
         [class.active]="activeTab === 'past'"
         (click)="activeTab = 'past'"
       >
+        <span class="tab-dot dot-past"></span>
         Past
-        <span class="badge rounded-pill bg-secondary">{{ past.length }}</span>
+        <span class="tab-badge badge-past">{{ past.length }}</span>
       </button>
     </li>
     <li class="nav-item">
       <button
-        class="nav-link d-flex align-items-center gap-2"
+        class="appt-tab d-flex align-items-center gap-2"
         [class.active]="activeTab === 'cancelled'"
         (click)="activeTab = 'cancelled'"
       >
+        <span class="tab-dot dot-cancelled"></span>
         Cancelled
-        <span class="badge rounded-pill bg-danger">{{ cancelled.length }}</span>
+        <span class="tab-badge badge-cancelled">{{ cancelled.length }}</span>
       </button>
     </li>
   </ul>
