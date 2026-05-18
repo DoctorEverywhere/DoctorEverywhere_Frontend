@@ -1,5 +1,4 @@
 <div class="d-flex flex-column align-items-end w-100 mt-4">
-  
   @if (errorMessage) {
     <div class="alert alert-danger py-2 mb-3 text-sm">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -7,17 +6,42 @@
     </div>
   }
 
-  <button 
-    class="btn btn-danger" 
-    (click)="onDeleteClick()" 
-    [disabled]="isDeleting">
-    
+  <button class="btn btn-danger" (click)="onDeleteClick()" [disabled]="isDeleting">
     @if (isDeleting) {
       <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
       Deleting...
     } @else {
       <i class="bi bi-trash3 me-2"></i> Delete Profile
     }
-    
   </button>
 </div>
+
+@if (showConfirmDialog) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+            Delete Profile
+          </h5>
+          <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-0">
+            Are you sure you want to delete your profile? This action cannot be undone.
+          </p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="onConfirm()">
+            <i class="bi bi-trash3 me-2"></i>Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
