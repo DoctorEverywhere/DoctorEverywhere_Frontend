@@ -12,8 +12,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
   private readonly USER_KEY  = 'current_user';
   private readonly baseUrl   = `${environment.apiUrl}/api/auth`;
-
-  private readonly USE_MOCK = false;
+  private readonly USE_MOCK  = false;
 
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(null);
   public  currentUser$       = this.currentUserSubject.asObservable();
@@ -24,10 +23,10 @@ export class AuthService {
 
   // ── Login ──────────────────────────────────────────────────────────────────
 
-  login(payload: LoginRequest): Observable<AuthResponse> {
+  login(payload: LoginRequest): Observable<any> {
     if (this.USE_MOCK) return this.mockLogin(payload);
 
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, {
+    return this.http.post<any>(`${this.baseUrl}/login`, {
       username: payload.username,
       password: payload.password,
     }).pipe(
@@ -46,7 +45,6 @@ export class AuthService {
       ? `${this.baseUrl}/register/doctor`
       : `${this.baseUrl}/register/patient`;
 
-    // Strip role — backend doesn't expect it
     const { role, ...body } = payload;
 
     return this.http.post<void>(url, body).pipe(
@@ -54,7 +52,10 @@ export class AuthService {
         this.login({
           username: payload.username,
           password: payload.password,
-        }).subscribe();
+        }).subscribe({
+          next: () => {},
+          error: () => {}
+        });
       }),
       catchError(err => throwError(() => this.extractErrorMessage(err)))
     );
@@ -101,7 +102,6 @@ export class AuthService {
     const token = this.getToken();
     if (!token) return;
 
-    // Reject mock tokens when USE_MOCK is off
     if (token.startsWith('mock.')) {
       if (!this.USE_MOCK) {
         localStorage.removeItem(this.TOKEN_KEY);
@@ -126,11 +126,8 @@ export class AuthService {
         };
         this.currentUserSubject.next(user);
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-
-        // Fetch real name if missing from JWT
-        if (!user.firstName) {
-          this.fetchAndUpdateName(user);
-        }
+        // Always fetch real name from API
+        this.fetchAndUpdateName(user);
       } else {
         this.logout();
       }
@@ -141,12 +138,19 @@ export class AuthService {
 
   // ── Auth success ───────────────────────────────────────────────────────────
 
-  private handleAuthSuccess(res: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, res.token);
+  private handleAuthSuccess(res: any): void {
+    // Backend returns { Token: "..." } capital T — handle both
+    const token = res.token ?? res.Token;
+    if (!token) {
+      console.error('No token in response:', res);
+      return;
+    }
+
+    localStorage.setItem(this.TOKEN_KEY, token);
 
     try {
-      const decoded = jwtDecode<any>(res.token);
-      const role = this.extractRole(decoded);
+      const decoded = jwtDecode<any>(token);
+      const role    = this.extractRole(decoded);
 
       const user: UserInfo = {
         id:        decoded.sub,
@@ -160,41 +164,30 @@ export class AuthService {
       this.currentUserSubject.next(user);
       this.redirectByRole(role);
 
-      // Fetch real name from API if JWT doesn't include it
-      if (!user.firstName) {
-        this.fetchAndUpdateName(user);
-      }
+      // Always fetch real name from API
+      this.fetchAndUpdateName(user);
     } catch (e) {
-      console.error('Failed to decode JWT', e);
+      console.error('Failed to decode JWT:', e);
     }
   }
 
-  // ── Fetch name from API (when JWT doesn't include firstName/lastName) ──────
+  // ── Fetch name from correct API endpoint ───────────────────────────────────
 
   private fetchAndUpdateName(user: UserInfo): void {
     if (user.role === UserRole.Patient) {
-      this.http.get<any>(`${environment.apiUrl}/api/patient/me`).subscribe({
-        next: p => this.updateUserName(user, p.firstName, p.lastName),
-        error: () => {
-          // fallback — get all patients and take first
-          this.http.get<any[]>(`${environment.apiUrl}/api/patient`).subscribe({
-            next: patients => {
-              if (patients?.length > 0) {
-                this.updateUserName(user, patients[0].firstName, patients[0].lastName);
-              }
-            },
-            error: () => {}
-          });
-        }
+      // GET /api/patient/my — returns ONLY the logged-in patient
+      this.http.get<any>(`${environment.apiUrl}/api/patient/my`).subscribe({
+        next:  p => this.updateUserName(user, p.firstName, p.lastName),
+        error: () => {}
       });
-    }
-
-    if (user.role === UserRole.Doctor) {
+    } else if (user.role === UserRole.Doctor) {
+      // GET /api/doctor/me — returns ONLY the logged-in doctor
       this.http.get<any>(`${environment.apiUrl}/api/doctor/me`).subscribe({
-        next: d => this.updateUserName(user, d.firstName, d.lastName),
+        next:  d => this.updateUserName(user, d.firstName, d.lastName),
         error: () => {}
       });
     }
+    // Manager or unknown — do nothing
   }
 
   private updateUserName(user: UserInfo, firstName: string, lastName: string): void {
@@ -203,12 +196,22 @@ export class AuthService {
     this.currentUserSubject.next(updated);
   }
 
-  // ── Role extraction ────────────────────────────────────────────────────────
+  // ── Role extraction — handles all possible JWT claim formats ───────────────
 
   private extractRole(decoded: any): UserRole {
-    const role = decoded.role
-      ?? decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-    return role as UserRole;
+    // Try short name first
+    if (decoded.role) return decoded.role as UserRole;
+
+    // Try full Microsoft URI (used by ClaimTypes.Role)
+    const msRole = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    if (msRole) return msRole as UserRole;
+
+    // Fallback — scan all keys for anything containing 'role'
+    const roleEntry = Object.entries(decoded)
+      .find(([k]) => k.toLowerCase().includes('role'));
+    if (roleEntry) return roleEntry[1] as UserRole;
+
+    return UserRole.Patient;
   }
 
   // ── Redirect by role ───────────────────────────────────────────────────────
