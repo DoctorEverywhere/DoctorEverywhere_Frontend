@@ -1,79 +1,137 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { map, Observable, of, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Appointment } from '../../../shared/models/appointment.model';
+import { Appointment, AppointmentStatus } from '../../../shared/models/appointment.model';
 import { Message } from '../../../shared/models/message.model';
-import { DAYS, DoctorProfile, DoctorRequest, WeeklySchedule, WeeklyAvailability, SaveSlotsRequest } from '../models/doctor.models';
+import { DAYS, DoctorProfile, WeeklySchedule, WeeklyAvailability } from '../models/doctor.models';
+
+// Maps day name → backend DayOfWeekOption enum integer
+const DAY_TO_INT: Record<string, number> = {
+  Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5, Sunday: 6,
+};
+
+// Maps backend DayOfWeekOption integer → day name
+const INT_TO_DAY: Record<number, string> = {
+  0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday',
+};
 
 @Injectable({ providedIn: 'root' })
 export class DoctorService {
-  private readonly USE_MOCK = true;
+  private readonly USE_MOCK = false;
   private readonly base = `${environment.apiUrl}/api`;
   private readonly SCHEDULE_KEY = 'doctor_weekly_schedule';
   private readonly AVAILABILITY_KEY = 'doctor_weekly_availability';
 
   constructor(private http: HttpClient) {}
 
-  getDoctorProfile(id: number): Observable<DoctorProfile> {
+  // ── Profile ───────────────────────────────────────────────────────────────
+
+  getMyProfile(): Observable<DoctorProfile> {
     if (this.USE_MOCK) return of(MOCK_DOCTOR_PROFILE);
-    return this.http.get<DoctorProfile>(`${this.base}/doctor/${id}`);
+    return this.http.get<DoctorProfile>(`${this.base}/doctor/me`);
   }
 
-  getRequests(): Observable<DoctorRequest[]> {
-    if (this.USE_MOCK) return of(MOCK_REQUESTS);
-    return this.http.get<DoctorRequest[]>(`${this.base}/doctor/requests`);
-  }
-
-  acceptRequest(id: string): Observable<void> {
-    if (this.USE_MOCK) {
-      const r = MOCK_REQUESTS.find(x => x.id === id);
-      if (r) {
-        r.status = 'accepted';
-        MOCK_DOCTOR_APPOINTMENTS.unshift({
-          id: 'da-' + Date.now(),
-          doctorId: 'self',
-          doctorName: 'Dr. You',
-          doctorSpecialty: 'Cardiology',
-          patientName: r.patientName,
-          date: r.date,
-          time: r.time,
-          status: 'confirmed',
-          createdAt: new Date().toISOString(),
-        });
-      }
-      return of(void 0);
-    }
-    return this.http.patch<void>(`${this.base}/doctor/requests/${id}/accept`, {});
-  }
-
-  rejectRequest(id: string): Observable<void> {
-    if (this.USE_MOCK) {
-      const r = MOCK_REQUESTS.find(x => x.id === id);
-      if (r) r.status = 'rejected';
-      return of(void 0);
-    }
-    return this.http.patch<void>(`${this.base}/doctor/requests/${id}/reject`, {});
-  }
+  // ── Appointments ──────────────────────────────────────────────────────────
 
   getAppointments(): Observable<Appointment[]> {
     if (this.USE_MOCK) return of(MOCK_DOCTOR_APPOINTMENTS);
-    return this.http.get<Appointment[]>(`${this.base}/doctor/appointments`);
+    // Backend returns { appointments: [...], result: {...} } for doctors
+    // We only need the appointments array
+    return this.http.get<{ appointments: Appointment[] }>(`${this.base}/appointment/my`).pipe(
+      map(res => res.appointments ?? [])
+    );
   }
+
+  // ── Requests (pending appointments) ──────────────────────────────────────
+
+  getRequests(): Observable<Appointment[]> {
+    if (this.USE_MOCK) return of(MOCK_DOCTOR_APPOINTMENTS.filter(a => a.statusId === AppointmentStatus.Pending));
+    // Same endpoint as getAppointments — filter client-side for pending only
+    return this.http.get<{ appointments: Appointment[] }>(`${this.base}/appointment/my`).pipe(
+      map(res => (res.appointments ?? []).filter(a => a.statusId === AppointmentStatus.Pending))
+    );
+  }
+
+  acceptRequest(id: number): Observable<void> {
+    if (this.USE_MOCK) return of(void 0);
+    return this.http.patch<void>(
+      `${this.base}/appointment/${id}/status`,
+      { statusId: AppointmentStatus.Confirmed }  // = 1
+    );
+  }
+
+  rejectRequest(id: number): Observable<void> {
+    if (this.USE_MOCK) return of(void 0);
+    return this.http.patch<void>(
+      `${this.base}/appointment/${id}/status`,
+      { statusId: AppointmentStatus.Rejected }   // = 3
+    );
+  }
+
+  // ── Availability ──────────────────────────────────────────────────────────
+
+  getAvailability(): Observable<WeeklyAvailability> {
+    if (this.USE_MOCK) {
+      const stored = localStorage.getItem(this.AVAILABILITY_KEY);
+      const parsed = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_AVAILABILITY));
+      return of(parsed);
+    }
+    // Backend returns: [{ dayOfWeek: 0, shiftStartTime: "09:00:00", shiftEndTime: "13:00:00" }, ...]
+    return this.http.get<any[]>(`${this.base}/availability/slots`).pipe(
+      map(dtos => {
+        const result: WeeklyAvailability = {
+          Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [],
+        };
+        for (const dto of dtos) {
+          const day = INT_TO_DAY[dto.dayOfWeek] as keyof WeeklyAvailability;
+          if (day && day in result) {
+            result[day].push({
+              start: dto.shiftStartTime.slice(0, 5),  // "09:00:00" → "09:00"
+              end:   dto.shiftEndTime.slice(0, 5),
+            });
+          }
+        }
+        return result;
+      })
+    );
+  }
+
+  saveAvailability(availability: WeeklyAvailability): Observable<void> {
+    if (this.USE_MOCK) {
+      localStorage.setItem(this.AVAILABILITY_KEY, JSON.stringify(availability));
+      return of(void 0);
+    }
+    // Backend expects a flat array — no wrapper object
+    // dayOfWeek must be integer (0=Monday), times need seconds suffix "09:00:00"
+    const payload = DAYS.flatMap(day =>
+      availability[day].map(r => ({
+        dayOfWeek:      DAY_TO_INT[day],
+        shiftStartTime: r.start + ':00',  // "09:00" → "09:00:00"
+        shiftEndTime:   r.end   + ':00',
+      }))
+    );
+    return this.http.post<void>(`${this.base}/availability/slots`, payload);
+  }
+
+  deleteDoctorProfile(): Observable<string> {
+    // Because the C# backend returns a plain string in the 200 OK response, 
+    // we MUST tell Angular to expect text, not JSON.
+    return this.http.delete(`${this.base}/doctor/delete`, { responseType: 'text' });
+  }
+  // ── Messages ──────────────────────────────────────────────────────────────
 
   getMessages(): Observable<Message[]> {
     if (this.USE_MOCK) return of(MOCK_DOCTOR_MESSAGES);
-    return this.http.get<Message[]>(`${this.base}/doctor/messages`);
+    return of([]);
   }
 
   sendMessage(appointmentId: string, content: string): Observable<Message> {
     if (this.USE_MOCK) {
-      const appt = MOCK_DOCTOR_APPOINTMENTS.find(a => a.id === appointmentId);
       const msg: Message = {
-        id: 'dm-' + Date.now(),
+        id: 'msg-' + Date.now(),
         appointmentId,
         doctorName: 'Dr. You',
-        patientName: appt?.patientName,
         content,
         sentAt: new Date().toISOString(),
         fromPatient: false,
@@ -82,13 +140,15 @@ export class DoctorService {
       MOCK_DOCTOR_MESSAGES.unshift(msg);
       return of(msg);
     }
-    return this.http.post<Message>(`${this.base}/messages`, { appointmentId, content });
+    return throwError(() => new Error('Messages not yet implemented on backend'));
   }
+
+  // ── Weekly schedule (local only) ──────────────────────────────────────────
 
   getWeeklySchedule(): WeeklySchedule {
     const stored = localStorage.getItem(this.SCHEDULE_KEY);
     if (stored) {
-      try { return JSON.parse(stored); } catch { /* fall through to default */ }
+      try { return JSON.parse(stored); } catch { /* fall through */ }
     }
     return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
   }
@@ -96,35 +156,9 @@ export class DoctorService {
   saveWeeklySchedule(schedule: WeeklySchedule): void {
     localStorage.setItem(this.SCHEDULE_KEY, JSON.stringify(schedule));
   }
-
-  getAvailability(): WeeklyAvailability {
-    const stored = localStorage.getItem(this.AVAILABILITY_KEY);
-    if (stored) {
-      try { return JSON.parse(stored); } catch { /* fall through to default */ }
-    }
-    return JSON.parse(JSON.stringify(DEFAULT_AVAILABILITY));
-  }
-
-  saveAvailability(availability: WeeklyAvailability): Observable<void> {
-    const payload: SaveSlotsRequest = {
-      slots: DAYS.flatMap(day =>
-        availability[day].map(r => ({
-          dayOfWeek: day,
-          startTime: r.start,
-          endTime: r.end,
-        }))
-      ),
-    };
-    if (this.USE_MOCK) {
-      console.log('POST /api/availability/slots (mock)', payload);
-      localStorage.setItem(this.AVAILABILITY_KEY, JSON.stringify(availability));
-      return of(void 0);
-    }
-    return this.http.post<void>(`${this.base}/availability/slots`, payload);
-  }
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const addDays = (n: number): string => {
   const d = new Date();
@@ -132,9 +166,7 @@ const addDays = (n: number): string => {
   return d.toISOString().split('T')[0];
 };
 
-const today = new Date().toISOString().split('T')[0];
-
-// ── Default weekly schedule (legacy) ─────────────────────────────────────────
+// ── Default weekly schedule (local only) ──────────────────────────────────────
 
 const DEFAULT_SCHEDULE: WeeklySchedule = {
   Monday:    ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30'],
@@ -145,7 +177,7 @@ const DEFAULT_SCHEDULE: WeeklySchedule = {
   Saturday:  [],
 };
 
-// ── Default weekly availability (ranges) ──────────────────────────────────────
+// ── Default weekly availability ───────────────────────────────────────────────
 
 const DEFAULT_AVAILABILITY: WeeklyAvailability = {
   Monday:    [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }],
@@ -156,7 +188,7 @@ const DEFAULT_AVAILABILITY: WeeklyAvailability = {
   Saturday:  [],
 };
 
-// ── Mock profile ─────────────────────────────────────────────────────────────
+// ── Mock data (used only when USE_MOCK = true) ────────────────────────────────
 
 const MOCK_DOCTOR_PROFILE: DoctorProfile = {
   id: 1,
@@ -174,27 +206,16 @@ const MOCK_DOCTOR_PROFILE: DoctorProfile = {
   },
 };
 
-// ── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_REQUESTS: DoctorRequest[] = [
-  { id: 'req-1', patientId: 'p1', patientName: 'Maria Papadopoulou', date: addDays(2), time: '09:00', status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'req-2', patientId: 'p2', patientName: 'Giorgos Nikolaou',   date: addDays(2), time: '10:30', status: 'pending', createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: 'req-3', patientId: 'p3', patientName: 'Anna Kostopoulos',   date: addDays(3), time: '14:00', status: 'pending', createdAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'req-4', patientId: 'p4', patientName: 'Dimitris Alexiou',   date: addDays(1), time: '09:30', status: 'accepted', createdAt: new Date(Date.now() - 172800000).toISOString() },
-  { id: 'req-5', patientId: 'p5', patientName: 'Eleni Stavrou',      date: addDays(4), time: '11:00', status: 'rejected', createdAt: new Date(Date.now() - 259200000).toISOString() },
-  { id: 'req-6', patientId: 'p6', patientName: 'Nikos Konstantinou', date: addDays(5), time: '15:30', status: 'pending', createdAt: new Date(Date.now() - 43200000).toISOString() },
-];
-
-export const MOCK_DOCTOR_APPOINTMENTS: Appointment[] = [
-  { id: 'da-1', doctorId: 'self', doctorName: 'Dr. You', doctorSpecialty: 'Cardiology', patientName: 'Dimitris Alexiou',   date: today,        time: '09:00', status: 'confirmed', createdAt: new Date().toISOString() },
-  { id: 'da-2', doctorId: 'self', doctorName: 'Dr. You', doctorSpecialty: 'Cardiology', patientName: 'Sofia Petrou',       date: today,        time: '11:00', status: 'confirmed', createdAt: new Date().toISOString() },
-  { id: 'da-3', doctorId: 'self', doctorName: 'Dr. You', doctorSpecialty: 'Cardiology', patientName: 'Nikos Konstantinou', date: addDays(1),   time: '09:30', status: 'confirmed', createdAt: new Date().toISOString() },
-  { id: 'da-4', doctorId: 'self', doctorName: 'Dr. You', doctorSpecialty: 'Cardiology', patientName: 'Maria Papadaki',     date: addDays(-2),  time: '10:00', status: 'confirmed', createdAt: new Date(Date.now() - 172800000).toISOString() },
-  { id: 'da-5', doctorId: 'self', doctorName: 'Dr. You', doctorSpecialty: 'Cardiology', patientName: 'Kostas Dimitriou',   date: addDays(-1),  time: '14:00', status: 'cancelled', createdAt: new Date(Date.now() - 86400000).toISOString() },
+const MOCK_DOCTOR_APPOINTMENTS: Appointment[] = [
+  { id: 1, patientId: 1, doctorId: 1, startingAt: `${addDays(0)}T09:00:00`, statusId: AppointmentStatus.Confirmed,  requestedAt: new Date(Date.now() - 86400000).toISOString(),  doctorName: 'Dr. You', patientName: 'Dimitris Alexiou'   },
+  { id: 2, patientId: 2, doctorId: 1, startingAt: `${addDays(0)}T11:00:00`, statusId: AppointmentStatus.Confirmed,  requestedAt: new Date(Date.now() - 86400000).toISOString(),  doctorName: 'Dr. You', patientName: 'Sofia Petrou'       },
+  { id: 3, patientId: 3, doctorId: 1, startingAt: `${addDays(1)}T09:30:00`, statusId: AppointmentStatus.Pending,    requestedAt: new Date(Date.now() - 3600000).toISOString(),   doctorName: 'Dr. You', patientName: 'Nikos Konstantinou' },
+  { id: 4, patientId: 4, doctorId: 1, startingAt: `${addDays(-2)}T10:00:00`,statusId: AppointmentStatus.Confirmed,  requestedAt: new Date(Date.now() - 259200000).toISOString(), doctorName: 'Dr. You', patientName: 'Maria Papadaki'     },
+  { id: 5, patientId: 5, doctorId: 1, startingAt: `${addDays(-1)}T14:00:00`,statusId: AppointmentStatus.Cancelled,  requestedAt: new Date(Date.now() - 172800000).toISOString(), doctorName: 'Dr. You', patientName: 'Kostas Dimitriou'   },
 ];
 
 export const MOCK_DOCTOR_MESSAGES: Message[] = [
-  { id: 'dm-1', appointmentId: 'da-1', doctorName: 'Dr. You', patientName: 'Dimitris Alexiou',   content: 'Do I need to fast before the appointment?', sentAt: new Date(Date.now() - 3600000).toISOString(),  fromPatient: true,  read: false },
-  { id: 'dm-2', appointmentId: 'da-3', doctorName: 'Dr. You', patientName: 'Nikos Konstantinou', content: 'Please bring your previous test results.',   sentAt: new Date(Date.now() - 86400000).toISOString(), fromPatient: false, read: true  },
-  { id: 'dm-3', appointmentId: 'da-3', doctorName: 'Dr. You', patientName: 'Nikos Konstantinou', content: 'Of course, I will bring them. Thank you!',   sentAt: new Date(Date.now() - 82800000).toISOString(), fromPatient: true,  read: true  },
+  { id: 'dm-1', appointmentId: '1', doctorName: 'Dr. You', patientName: 'Dimitris Alexiou',   content: 'Do I need to fast before the appointment?', sentAt: new Date(Date.now() - 3600000).toISOString(),  fromPatient: true,  read: false },
+  { id: 'dm-2', appointmentId: '3', doctorName: 'Dr. You', patientName: 'Nikos Konstantinou', content: 'Please bring your previous test results.',   sentAt: new Date(Date.now() - 86400000).toISOString(), fromPatient: false, read: true  },
+  { id: 'dm-3', appointmentId: '3', doctorName: 'Dr. You', patientName: 'Nikos Konstantinou', content: 'Of course, I will bring them. Thank you!',   sentAt: new Date(Date.now() - 82800000).toISOString(), fromPatient: true,  read: true  },
 ];

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DoctorRequest } from '../../../models/doctor.models';
+import { Appointment } from '../../../../../shared/models/appointment.model';
 
 @Component({
   selector: 'app-pending-requests-preview',
@@ -10,13 +10,16 @@ import { DoctorRequest } from '../../../models/doctor.models';
   styleUrls: ['./pending-requests-preview.component.scss']
 })
 export class PendingRequestsPreviewComponent {
-  @Input()  requests: DoctorRequest[] = [];
-  @Output() accepted = new EventEmitter<string>();
-  @Output() rejected = new EventEmitter<string>();
+  @Input()  requests: Appointment[] = [];
+  @Output() accepted = new EventEmitter<number>();
+  @Output() rejected = new EventEmitter<number>();
 
   initials(name: string): string {
     return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
   }
+
+  getDate(startingAt: string): string { return startingAt.split('T')[0]; }
+  getTime(startingAt: string): string { return startingAt.split('T')[1].slice(0, 5); }
 
   formatDate(d: string): string {
     return new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });

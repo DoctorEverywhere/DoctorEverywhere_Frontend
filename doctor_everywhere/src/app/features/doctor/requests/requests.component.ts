@@ -1,6 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { DoctorService } from '../services/doctor.service';
-import { DoctorRequest } from '../models/doctor.models';
+import { Appointment, AppointmentStatus } from '../../../shared/models/appointment.model';
 import { RequestListComponent } from './components/request-list/request-list.component';
 
 @Component({
@@ -12,36 +12,42 @@ import { RequestListComponent } from './components/request-list/request-list.com
 })
 export class DoctorRequestsComponent implements OnInit {
   private svc = inject(DoctorService);
+  private cdr = inject(ChangeDetectorRef);
 
-  requests: DoctorRequest[] = [];
+  requests: Appointment[] = [];
   loading = true;
   activeTab: 'pending' | 'accepted' | 'rejected' = 'pending';
 
   ngOnInit(): void {
-    this.svc.getRequests().subscribe(r => { this.requests = r; this.loading = false; });
+    this.svc.getAppointments().subscribe({
+      next: r => { this.requests = r; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { this.loading = false; this.cdr.detectChanges(); }
+    });
   }
 
-  get pending():  DoctorRequest[] { return this.requests.filter(r => r.status === 'pending'); }
-  get accepted(): DoctorRequest[] { return this.requests.filter(r => r.status === 'accepted'); }
-  get rejected(): DoctorRequest[] { return this.requests.filter(r => r.status === 'rejected'); }
+  get pending():  Appointment[] { return this.requests.filter(r => r.statusId === AppointmentStatus.Pending); }
+  get accepted(): Appointment[] { return this.requests.filter(r => r.statusId === AppointmentStatus.Confirmed); }
+  get rejected(): Appointment[] { return this.requests.filter(r => r.statusId === AppointmentStatus.Rejected); }
 
-  get activeList(): DoctorRequest[] {
+  get activeList(): Appointment[] {
     return this.activeTab === 'pending'  ? this.pending
          : this.activeTab === 'accepted' ? this.accepted
          : this.rejected;
   }
 
-  accept(id: string): void {
+  accept(id: number): void {
     this.svc.acceptRequest(id).subscribe(() => {
       const r = this.requests.find(x => x.id === id);
-      if (r) r.status = 'accepted';
+      if (r) r.statusId = AppointmentStatus.Confirmed;
+      this.cdr.detectChanges();
     });
   }
 
-  reject(id: string): void {
+  reject(id: number): void {
     this.svc.rejectRequest(id).subscribe(() => {
       const r = this.requests.find(x => x.id === id);
-      if (r) r.status = 'rejected';
+      if (r) r.statusId = AppointmentStatus.Rejected;
+      this.cdr.detectChanges();
     });
   }
 }

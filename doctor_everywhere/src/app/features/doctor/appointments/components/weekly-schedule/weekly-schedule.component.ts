@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DoctorService } from '../../../services/doctor.service';
 import { DAYS, TIME_SLOTS, Day, AvailabilityRange, WeeklyAvailability } from '../../../models/doctor.models';
@@ -12,15 +12,19 @@ import { DAYS, TIME_SLOTS, Day, AvailabilityRange, WeeklyAvailability } from '..
 })
 export class WeeklyScheduleComponent implements OnInit {
   private svc = inject(DoctorService);
+  private cdr = inject(ChangeDetectorRef);
 
   readonly days = DAYS;
   readonly timeOptions: string[] = [...TIME_SLOTS];
-  schedule!: WeeklyAvailability;
+  schedule: WeeklyAvailability = DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {} as WeeklyAvailability);
   saved = false;
   error = '';
 
   ngOnInit(): void {
-    this.schedule = this.svc.getAvailability();
+    this.svc.getAvailability().subscribe(av => {
+      this.schedule = av;
+      this.cdr.detectChanges();
+    });
   }
 
   endTimeOptions(startTime: string): string[] {
@@ -66,10 +70,12 @@ export class WeeklyScheduleComponent implements OnInit {
     this.svc.saveAvailability(this.schedule).subscribe({
       next: () => {
         this.saved = true;
-        setTimeout(() => (this.saved = false), 3000);
+        this.cdr.detectChanges();
+        setTimeout(() => { this.saved = false; this.cdr.detectChanges(); }, 3000);
       },
       error: () => {
         this.error = 'Failed to save. Please try again.';
+        this.cdr.detectChanges();
       },
     });
   }

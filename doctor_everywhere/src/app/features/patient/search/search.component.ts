@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { PatientService } from '../services/patient.service';
 import { Doctor, TimeSlot } from '../../../shared/models/doctor.model';
-import { AppointmentRequest } from '../../../shared/models/appointment.model';
+import { AppointmentRequest } from '../services/patient.service';
 
 @Component({
   selector: 'app-search',
@@ -64,7 +64,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedDate = '';
   minDate = new Date().toISOString().split('T')[0];
 
-  constructor(private svc: PatientService) {}
+  constructor(private svc: PatientService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {}
 
@@ -192,6 +192,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
       this.doctors = d;
       this.loading = false;
       if (this.map) this.renderDoctorMarkers();
+      this.cdr.detectChanges();
     });
   }
 
@@ -219,6 +220,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
         ? Math.round((r.reduce((sum: number, x: any) => sum + x.rating, 0) / r.length) * 10) / 10
         : 0;
       this.reviewsLoading = false;
+      this.cdr.detectChanges();
     });
   }
 
@@ -234,6 +236,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.svc.getDoctorSlots(this.selectedDoctor.id, date).subscribe(s => {
       this.slots = s;
       this.slotsLoading = false;
+      this.cdr.detectChanges();
     });
   }
 
@@ -255,6 +258,10 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
       error: () => {
         this.bookingLoading = false;
       }
+    this.svc.bookAppointment(req).subscribe(() => {
+      this.bookingSuccess = true;
+      this.bookingLoading = false;
+      this.cdr.detectChanges();
     });
   }
 

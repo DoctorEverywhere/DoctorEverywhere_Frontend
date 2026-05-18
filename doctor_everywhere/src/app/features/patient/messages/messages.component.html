@@ -12,7 +12,7 @@
         <select class="form-select" style="min-width:220px;max-width:300px" [(ngModel)]="selectedAppointmentId">
           <option value="" disabled>Select appointment…</option>
           @for (a of appointments; track a.id) {
-            <option [value]="a.id">{{ a.doctorName }} · {{ a.date }} {{ a.time }}</option>
+            <option [value]="a.id">{{ a.doctorName }} · {{ a.startingAt.split('T')[0] }} {{ a.startingAt.split('T')[1].slice(0, 5) }}</option>
           }
         </select>
         <input

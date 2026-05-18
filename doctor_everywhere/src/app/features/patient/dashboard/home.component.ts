@@ -1,10 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../shared/services/auth.service';
 import { PatientService } from '../services/patient.service';
-import { Appointment } from '../../../shared/models/appointment.model';
+import { Appointment, AppointmentStatus } from '../../../shared/models/appointment.model';
 import { Message } from '../../../shared/models/message.model';
 import { UserInfo } from '../../../shared/models/user-identity.model';
 
@@ -17,7 +17,8 @@ import { UserInfo } from '../../../shared/models/user-identity.model';
 })
 export class PatientHomeComponent implements OnInit {
   private auth = inject(AuthService);
-  private svc = inject(PatientService);
+  private svc  = inject(PatientService);
+  private cdr  = inject(ChangeDetectorRef);
 
   readonly user$: Observable<UserInfo | null> = this.auth.currentUser$;
 
@@ -31,25 +32,35 @@ export class PatientHomeComponent implements OnInit {
 
     this.svc.getMyAppointments().subscribe(appts => {
       this.upcomingAppointments = appts
-        .filter(a => a.date >= today && a.status !== 'cancelled')
+        .filter(a => a.startingAt.split('T')[0] >= today && a.statusId !== AppointmentStatus.Cancelled)
         .slice(0, 3);
-      this.pendingAppointments = appts.filter(a => a.status === 'pending');
+      this.pendingAppointments = appts.filter(a => a.statusId === AppointmentStatus.Pending);
       this.loading = false;
+      this.cdr.detectChanges();
     });
 
     this.svc.getMyMessages().subscribe(msgs => {
       this.unreadMessages = msgs.filter(m => !m.read && !m.fromPatient).slice(0, 3);
+      this.cdr.detectChanges();
     });
   }
 
-  statusClass(status: string): string {
-    return ({
-      confirmed: 'status-confirmed',
-      pending:   'status-pending',
-      rejected:  'status-rejected',
-      modified:  'status-modified',
-      cancelled: 'status-cancelled',
-    } as Record<string, string>)[status] ?? '';
+  getDate(startingAt: string): string { return startingAt.split('T')[0]; }
+  getTime(startingAt: string): string { return startingAt.split('T')[1].slice(0, 5); }
+
+  statusLabel(statusId: AppointmentStatus): string {
+    return AppointmentStatus[statusId]?.toLowerCase() ?? 'unknown';
+  }
+
+  statusClass(statusId: AppointmentStatus): string {
+    const map: Record<number, string> = {
+      [AppointmentStatus.Confirmed]:   'status-confirmed',
+      [AppointmentStatus.Pending]:     'status-pending',
+      [AppointmentStatus.Rejected]:    'status-rejected',
+      [AppointmentStatus.Rescheduled]: 'status-modified',
+      [AppointmentStatus.Cancelled]:   'status-cancelled',
+    };
+    return map[statusId] ?? '';
   }
 
   formatDate(dateStr: string): string {
