@@ -7,11 +7,12 @@ import { PatientService } from '../services/patient.service';
 import { Appointment, AppointmentStatus } from '../../../shared/models/appointment.model';
 import { Message } from '../../../shared/models/message.model';
 import { UserInfo } from '../../../shared/models/user-identity.model';
+import { PatientDeleteComponent } from './components/patient-delete/patient-delete.component/patient-delete.component';
 
 @Component({
   selector: 'app-patient-home',
   standalone: true,
-  imports: [AsyncPipe, NgClass, RouterLink],
+  imports: [AsyncPipe, NgClass, RouterLink, PatientDeleteComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })

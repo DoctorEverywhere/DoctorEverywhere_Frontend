@@ -90,6 +90,12 @@ export class PatientService {
     );
   }
 
+  deletePatientProfile(): Observable<string> {
+    // Because the C# backend returns a plain string in the 200 OK response, 
+    // we MUST tell Angular to expect text, not JSON.
+    return this.http.delete(`${this.base}/patient/delete`, { responseType: 'text' });
+  }
+
   // POST /api/appointment/request?doctorId={id}
   // Body: { startingAt: "2026-05-20T09:00:00" }
   bookAppointment(req: AppointmentRequest): Observable<any> {
