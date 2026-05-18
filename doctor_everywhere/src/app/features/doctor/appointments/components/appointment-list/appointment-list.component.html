@@ -9,23 +9,20 @@
         <div class="card-body d-flex align-items-start gap-3">
 
           <div class="appt-date-block bg-primary-subtle rounded-2 d-flex flex-column align-items-center justify-content-center flex-shrink-0">
-            <span class="fw-bold text-primary lh-1">{{ a.date.split('-')[2] }}</span>
+            <span class="fw-bold text-primary lh-1">{{ getDate(a.startingAt).split('-')[2] }}</span>
             <span class="text-primary" style="font-size:0.625rem;text-transform:uppercase">
-              {{ formatDate(a.date).split(' ')[2] }}
+              {{ formatDate(getDate(a.startingAt)).split(' ')[2] }}
             </span>
           </div>
 
           <div class="flex-grow-1 min-w-0 d-flex flex-column gap-1">
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <span class="fw-semibold text-dark">{{ a.patientName ?? 'Patient' }}</span>
-              <span class="badge rounded-pill" [ngClass]="statusClass(a.status)">{{ a.status }}</span>
+              <span class="badge rounded-pill" [ngClass]="statusClass(a.statusId)">{{ statusLabel(a.statusId) }}</span>
             </div>
             <span class="small text-muted d-flex align-items-center gap-1">
-              <i class="bi bi-clock"></i> {{ formatDate(a.date) }} at {{ a.time }}
+              <i class="bi bi-clock"></i> {{ formatDate(getDate(a.startingAt)) }} at {{ getTime(a.startingAt) }}
             </span>
-            @if (a.notes) {
-              <span class="small text-muted">📝 {{ a.notes }}</span>
-            }
           </div>
 
         </div>

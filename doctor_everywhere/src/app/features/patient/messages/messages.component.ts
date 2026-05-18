@@ -1,8 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PatientService } from '../services/patient.service';
 import { Message } from '../../../shared/models/message.model';
-import { Appointment } from '../../../shared/models/appointment.model';
+import { Appointment, AppointmentStatus } from '../../../shared/models/appointment.model';
 
 @Component({
   selector: 'app-messages',
@@ -13,6 +13,7 @@ import { Appointment } from '../../../shared/models/appointment.model';
 })
 export class MessagesComponent implements OnInit {
   private svc = inject(PatientService);
+  private cdr = inject(ChangeDetectorRef);
 
   messages: Message[] = [];
   appointments: Appointment[] = [];
@@ -22,9 +23,10 @@ export class MessagesComponent implements OnInit {
   sending = false;
 
   ngOnInit(): void {
-    this.svc.getMyMessages().subscribe(m => { this.messages = m; this.loading = false; });
+    this.svc.getMyMessages().subscribe(m => { this.messages = m; this.loading = false; this.cdr.detectChanges(); });
     this.svc.getMyAppointments().subscribe(a => {
-      this.appointments = a.filter(x => x.status !== 'cancelled');
+      this.appointments = a.filter(x => x.statusId !== AppointmentStatus.Cancelled);
+      this.cdr.detectChanges();
     });
   }
 
@@ -35,6 +37,7 @@ export class MessagesComponent implements OnInit {
       this.messages.unshift(msg);
       this.newMessage = '';
       this.sending = false;
+      this.cdr.detectChanges();
     });
   }
 

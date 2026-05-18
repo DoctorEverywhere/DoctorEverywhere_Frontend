@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DoctorRequest } from '../../../models/doctor.models';
+import { Appointment, AppointmentStatus } from '../../../../../shared/models/appointment.model';
 
 @Component({
   selector: 'app-request-list',
@@ -9,15 +9,20 @@ import { DoctorRequest } from '../../../models/doctor.models';
   styleUrls: ['./request-list.component.scss']
 })
 export class RequestListComponent {
-  @Input()  requests: DoctorRequest[] = [];
+  @Input()  requests: Appointment[] = [];
   @Input()  loading = false;
   @Input()  showActions = false;
-  @Output() accepted = new EventEmitter<string>();
-  @Output() rejected = new EventEmitter<string>();
+  @Output() accepted = new EventEmitter<number>();
+  @Output() rejected = new EventEmitter<number>();
+
+  readonly Status = AppointmentStatus;
 
   initials(name: string): string {
     return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
   }
+
+  getDate(startingAt: string): string { return startingAt.split('T')[0]; }
+  getTime(startingAt: string): string { return startingAt.split('T')[1].slice(0, 5); }
 
   formatDate(d: string): string {
     return new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });

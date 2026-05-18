@@ -117,17 +117,18 @@ export class AuthService {
       const decoded = jwtDecode<any>(token);
       if (decoded.exp * 1000 > Date.now()) {
         const role = this.extractRole(decoded);
+        const stored = localStorage.getItem(this.USER_KEY);
+        const storedUser: UserInfo | null = stored ? JSON.parse(stored) : null;
         const user: UserInfo = {
           id:        decoded.sub,
           username:  decoded.unique_name ?? decoded.name ?? '',
-          firstName: decoded.given_name  ?? decoded.firstName ?? '',
-          lastName:  decoded.family_name ?? decoded.lastName  ?? '',
+          firstName: storedUser?.firstName || decoded.given_name  || decoded.firstName || '',
+          lastName:  storedUser?.lastName  || decoded.family_name || decoded.lastName  || '',
           role,
         };
         this.currentUserSubject.next(user);
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
 
-        // Fetch real name if missing from JWT
         if (!user.firstName) {
           this.fetchAndUpdateName(user);
         }

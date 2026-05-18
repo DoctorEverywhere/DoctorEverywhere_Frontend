@@ -18,13 +18,13 @@
             <div class="flex-grow-1 min-w-0">
               <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                 <span class="fw-semibold text-dark">{{ r.patientName }}</span>
-                @if (r.status === 'accepted') {
+                @if (r.statusId === Status.Confirmed) {
                   <span class="badge rounded-pill bg-success-subtle text-success">Accepted</span>
                 }
-                @if (r.status === 'rejected') {
+                @if (r.statusId === Status.Rejected) {
                   <span class="badge rounded-pill bg-danger-subtle text-danger">Rejected</span>
                 }
-                @if (r.status === 'pending') {
+                @if (r.statusId === Status.Pending) {
                   <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis"
                     >Pending</span
                   >
@@ -32,16 +32,11 @@
               </div>
               <div class="d-flex align-items-center gap-1 text-muted small mb-1">
                 <i class="bi bi-calendar-event"></i>
-                {{ formatDate(r.date) }} at {{ r.time }}
+                {{ formatDate(getDate(r.startingAt)) }} at {{ getTime(r.startingAt) }}
               </div>
               <div class="text-muted" style="font-size: 0.75rem">
-                Requested {{ timeAgo(r.createdAt) }}
+                Requested {{ timeAgo(r.requestedAt) }}
               </div>
-              <!-- @if (r.notes) {
-                <div class="mt-2 p-2 bg-light rounded-2 small text-muted fst-italic">
-                  📝 {{ r.notes }}
-                </div>
-              } -->
             </div>
           </div>
 
