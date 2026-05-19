@@ -59,6 +59,20 @@ src/app/
 - npm run build — production build 
 - npm test — unit tests 
 - npm run watch — dev build with watch
-
+  
 ## Additional documentation
-- ![Architectural Patterns](doctor_everywhere/Documentation/architectural_patterns.md) - patterns and conventions observed in this codebase
+- ![Architectural Patterns](doctor_everywhere/architectural_patterns.md) - patterns and conventions observed in this codebase
+
+## Pictures
+**Create Account**
+
+![Create Account](pictures/CreateAccount.png)
+
+**Appointment Slots**
+
+![Appointment Slots](pictures/ChooseSlots.png)
+
+**Working Schedule**
+
+![Working Schedule](pictures/WorkingSchedule.png)
+
