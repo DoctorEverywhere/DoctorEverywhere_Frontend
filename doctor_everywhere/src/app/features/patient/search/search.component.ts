@@ -60,9 +60,9 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   reviewsLoading = false;
   averageRating = 0;
 
-  // Date picker
-  selectedDate = '';
-  minDate = new Date().toISOString().split('T')[0];
+  // Date picker — default to today in Athens time
+  selectedDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' });
+  minDate      = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' });
 
   constructor(private svc: PatientService, private cdr: ChangeDetectorRef) {}
 
@@ -157,31 +157,31 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
- searchByAddress(): void {
-  if (!this.manualAddress.trim()) return;
-  
-  const query = this.manualAddress.includes('Greece')
-    ? this.manualAddress
-    : `${this.manualAddress}, Greece`;
+  searchByAddress(): void {
+    if (!this.manualAddress.trim()) return;
 
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=gr`;
-  
-  fetch(url)
-    .then(r => r.json())
-    .then(results => {
-      if (results && results.length > 0) {
-        const lat = parseFloat(results[0].lat);
-        const lng = parseFloat(results[0].lon);
-        this.center = [lat, lng];
-        this.setUserMarker(lat, lng);
-        this.gpsError = '';
-        this.renderDoctorMarkers();
-      } else {
-        this.gpsError = 'Address not found. Try: "Street number, City"';
-      }
-    })
-    .catch(() => { this.gpsError = 'Could not search address.'; });
-}
+    const query = this.manualAddress.includes('Greece')
+      ? this.manualAddress
+      : `${this.manualAddress}, Greece`;
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=gr`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(results => {
+        if (results && results.length > 0) {
+          const lat = parseFloat(results[0].lat);
+          const lng = parseFloat(results[0].lon);
+          this.center = [lat, lng];
+          this.setUserMarker(lat, lng);
+          this.gpsError = '';
+          this.renderDoctorMarkers();
+        } else {
+          this.gpsError = 'Address not found. Try: "Street number, City"';
+        }
+      })
+      .catch(() => { this.gpsError = 'Could not search address.'; });
+  }
 
   // ── Doctors ───────────────────────────────────────────────────────────────
 
@@ -206,7 +206,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.slots          = [];
     this.reviews        = [];
     this.averageRating  = 0;
-    this.selectedDate   = this.minDate;
+    this.selectedDate   = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' });
     this.loadSlotsForDate();
     this.loadReviews();
   }
@@ -274,6 +274,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   formatSlotDate(date: string): string {
     return new Date(date).toLocaleDateString('en-GB', {
+      timeZone: 'Europe/Athens',
       weekday: 'short', day: 'numeric', month: 'short'
     });
   }

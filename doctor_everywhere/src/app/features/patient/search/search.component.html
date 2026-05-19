@@ -94,7 +94,7 @@
           [(ngModel)]="specialtyFilter"
           (change)="loadDoctors()"
         >
-          <option value="">All specialties</option>
+          <option value="" disabled selected>Choose specialty</option>
           @for (s of specialtyOptions; track s.value) {
             <option [value]="s.value">{{ s.label }}</option>
           }
@@ -209,9 +209,6 @@
       @if (bookingSuccess) {
         <div class="alert alert-success d-flex flex-column gap-2">
           Appointment requested! The doctor will confirm shortly.
-          <!-- <button class="btn btn-outline-success btn-sm align-self-start" (click)="closeBooking()">
-            Close
-          </button> -->
         </div>
       } @else {
         <!-- Date picker -->
