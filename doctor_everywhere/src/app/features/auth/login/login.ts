@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,7 +23,11 @@ export class LoginComponent implements OnInit {
   errorMessage = '';
   showPassword = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -69,10 +73,14 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     this.authService.login(this.form.value).subscribe({
-      next: () => { this.loading = false; },
+      next: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
       error: () => {
         this.loading      = false;
         this.errorMessage = 'Incorrect username or password. Please try again.';
+        this.cdr.detectChanges();
       }
     });
   }

@@ -29,6 +29,7 @@
           formControlName="username"
           placeholder="your_username"
           autocomplete="username"
+          (input)="errorMessage = ''"
         />
         <span class="form-error" *ngIf="username.touched && username.errors?.['required']">
           Username is required.
@@ -52,6 +53,7 @@
             formControlName="password"
             placeholder="••••••••"
             autocomplete="current-password"
+            (input)="errorMessage = ''"
           />
           <button type="button" class="input-suffix-btn" (click)="togglePassword()"
                   [title]="showPassword ? 'Hide password' : 'Show password'">
