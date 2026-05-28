@@ -2,42 +2,43 @@
 
 ## Project overview
 DoctorEverywhere Frontend is an Angular SPA for a location-aware doctor/patient appointment platform,
-with role-specific areas (patient, doctor, manager) behind authentication and a shared app layout.
+with role-specific areas (patient, doctor, manager).
 
-## Features
-- Authentication
-  - Register as Patient or Doctor
-  - Login with JWT
-- Doctor discovery
-  - Search doctors by specialty
-  - View doctor profile (including office/location details)
-- Availability management
-  - Doctors can create/update working schedule (availability slots)
-  - Patients can view a doctor’s available time slots for a given date
-- Appointments
-  - Patients can request appointments with a doctor
-  - Patients and doctors can view their appointments
-  - Appointment status updates (patient cancellation; doctor confirm/reject)
-- Reviews
-  - Patients can view a rating/comment review for a doctor
-- User deletion
-   - Users (Patient/Doctors) can delete their account,
-      - Patient names are marked as "Deleted Patient" in their reviews,and their appointments are auto-cancelled
-      - Doctor appointments are auto-rejected
+##  Features
+
+### Role-Based Portals & Access Control
+- **Patient Portal**: Register/login, search for nearby doctors by specialty, select appointment slots, leave ratings and comments, view bookings, and delete account.
+- **Doctor Portal**: Manage professional profiles, set availability ranges, approve or reject incoming patient requests, and delete account.
+
+### Interactive Search & Map Integration
+- Live geolocation-based doctor discovery.
+- Interactive mapping powered by **Leaflet** to visualize clinics and offices instantly.
+
+### Advanced Slot Scheduling
+- Dynamic slot booking for patients.
+- Flat weekly shift allocation for doctors to set their schedules efficiently.
+
+---
+
      
 ## Contributors
-- Maria-Eleni Kosma
-- Dimitrios Loukrezis 
-- Periklis Tsaousis
-- Marios Tzanos
+| Name |
+|------|
+| Maria-Eleni Kosma |
+| Dimitrios Loukrezis |
+| Periklis Tsaousis |
+| Marios Tzanos |
 
 ## Tech stack (Frontend)
-- Angular 21 + Angular CLI 
-- TypeScript 
-- RxJS 
-- Bootstrap + Bootstrap Icons 
-- Leaflet maps 
-- JWT decode for auth 
+[![Angular](https://img.shields.io/badge/Angular-21.2-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
+- **Framework**: Angular 21 (utilizing Standalone components for streamlined architecture).
+- **Styling**: Bootstrap 5.3 + Bootstrap Icons for modern, responsive layouts.
+- **State Management**: Reactive RxJS observables via unified service architectures.
+- **Map rendering**: Leaflet Maps with TypeScript types.
+- **Authentication**: Stateless client-side decoding using `jwt-decode`.
 
 ## Key directories 
 ```
@@ -54,14 +55,28 @@ src/app/
 └── environments/  # API URL config
 ```
 
-## Essential build/test commands 
-- npm run start — dev server 
-- npm run build — production build 
-- npm test — unit tests 
-- npm run watch — dev build with watch
-  
-## Additional documentation
-- ![Architectural Patterns](doctor_everywhere/architectural_patterns.md) - patterns and conventions observed in this codebase
+## Installation & Local Setup
+
+Get the local development server up and running in a few simple steps:
+
+### 1. Prerequisites
+Ensure you have **Node.js** (v18+ recommended) and **npm** installed on your system.
+
+### 2. Install Dependencies
+Navigate to the project subdirectory and install the required npm packages:
+```bash
+cd doctor_everywhere
+npm install
+```
+
+### 3. Start Development Server
+Launch the Angular development server:
+```bash
+npm run start
+```
+Once the compilation completes, navigate to `http://localhost:4200/` in your browser. The application supports Hot Module Replacement (HMR) and will auto-reload on file changes.
+
+---
 
 ## Pictures
 **Create Account**
@@ -75,4 +90,8 @@ src/app/
 **Working Schedule**
 
 ![Working Schedule](pictures/WorkingSchedule.png)
+
+---
+## Additional documentation
+- ![Architectural Patterns](doctor_everywhere/architectural_patterns.md) - patterns and conventions observed in this codebase
 
